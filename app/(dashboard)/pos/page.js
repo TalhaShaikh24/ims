@@ -21,14 +21,14 @@ export default function PosPage() {
   const [customerId, setCustomerId] = useState("");
   const [cart, setCart] = useState([]);
   const [discountPct, setDiscountPct] = useState(0);
-  const [taxRate, setTaxRate] = useState(8.5);
+  const [taxRate, setTaxRate] = useState(0);
   const [payOpen, setPayOpen] = useState(false);
   const [method, setMethod] = useState("Cash");
   const [received, setReceived] = useState("");
   const [saving, setSaving] = useState(false);
   const [held, setHeld] = useState(null);
 
-  useEffect(() => { getSetting("org", { tax_rate: 8.5 }).then((o) => setTaxRate(n(o?.tax_rate ?? 8.5))); try { const h = localStorage.getItem("xona_hold"); if (h) setHeld(JSON.parse(h)); } catch {} }, []);
+  useEffect(() => { getSetting("org", { tax_rate: 0 }).then((o) => setTaxRate(n(o?.tax_rate ?? 0))); try { const h = localStorage.getItem("xona_hold"); if (h) setHeld(JSON.parse(h)); } catch {} }, []);
 
   const products = useMemo(() => prodQ.rows.filter((p) => (cat === "all" || p.category_id === cat) && (p.name + " " + (p.sku || "")).toLowerCase().includes(search.toLowerCase())), [prodQ.rows, cat, search]);
   const catName = useMemo(() => new Map(catQ.rows.map((c) => [c.id, c.name])), [catQ.rows]);
@@ -36,7 +36,7 @@ export default function PosPage() {
   const subtotal = cart.reduce((a, i) => a + n(i.price) * i.qty, 0);
   const discount = round2(subtotal * (n(discountPct) / 100));
   const taxable = subtotal - discount;
-  const tax = round2(taxable * (taxRate / 100));
+  const tax = round2(taxable * (n(taxRate) / 100));
   const total = round2(taxable + tax);
   const change = round2(n(received) - total);
 
@@ -131,32 +131,44 @@ export default function PosPage() {
             )}
         </div>
 
-        <Card className="h-fit xl:sticky xl:top-24">
-          <div className="border-b border-slate-100 px-5 py-4 dark:border-slate-800">
-            <h3 className="flex items-center gap-2 text-sm font-semibold"><ShoppingCart className="h-4 w-4 text-indigo-600" /> Current Sale</h3>
+        <Card className="h-fit xl:sticky xl:top-18">
+          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3.5 dark:border-slate-800">
+            <h3 className="flex items-center gap-2 text-[14px] font-bold text-slate-900 dark:text-white"><ShoppingCart className="h-4 w-4 text-blue-600 dark:text-blue-400" /> Current Sale</h3>
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">{cart.reduce((a, i) => a + i.qty, 0)} items</span>
           </div>
-          <div className="max-h-[340px] overflow-y-auto px-5 py-3">
+          <div className="max-h-[320px] overflow-y-auto px-4 py-2.5">
             {cart.length === 0 ? (
-              <div className="py-10 text-center"><ShoppingCart className="mx-auto h-8 w-8 text-slate-300" /><p className="mt-3 text-sm font-medium text-slate-600 dark:text-slate-300">Your cart is empty</p><p className="mt-1 text-[13px] text-slate-400">Click a product to add it to the sale.</p></div>
+              <div className="py-8 text-center"><ShoppingCart className="mx-auto h-7 w-7 text-slate-300" /><p className="mt-2.5 text-[13.5px] font-semibold text-slate-600 dark:text-slate-300">Your cart is empty</p><p className="mt-0.5 text-[12.5px] text-slate-400">Click a product to add it to the sale.</p></div>
             ) : cart.map((i) => (
-              <div key={i.id} className="flex items-center gap-3 border-b border-slate-50 py-3 last:border-0 dark:border-slate-800">
-                <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-slate-800 dark:text-slate-100">{i.name}</p><p className="tnum text-xs text-slate-400">{money(i.price)} each</p></div>
-                <div className="flex items-center gap-1.5">
-                  <button onClick={() => setQty(i.id, i.qty - 1)} className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition hover:border-indigo-300 hover:text-indigo-600 dark:border-slate-700"><Minus className="h-3.5 w-3.5" /></button>
-                  <span className="tnum w-6 text-center text-sm font-semibold">{i.qty}</span>
-                  <button onClick={() => setQty(i.id, i.qty + 1)} className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition hover:border-indigo-300 hover:text-indigo-600 dark:border-slate-700"><Plus className="h-3.5 w-3.5" /></button>
+              <div key={i.id} className="flex items-center gap-2.5 border-b border-slate-100 py-2.5 last:border-0 dark:border-slate-800">
+                <div className="min-w-0 flex-1"><p className="truncate text-[13px] font-semibold text-slate-800 dark:text-slate-100">{i.name}</p><p className="tnum text-[11.5px] text-slate-400">{money(i.price)} each</p></div>
+                <div className="flex shrink-0 items-center gap-1">
+                  <button onClick={() => setQty(i.id, i.qty - 1)} className="flex h-6.5 w-6.5 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700"><Minus className="h-3 w-3" /></button>
+                  <span className="tnum w-5 text-center text-[12.5px] font-semibold">{i.qty}</span>
+                  <button onClick={() => setQty(i.id, i.qty + 1)} className="flex h-6.5 w-6.5 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700"><Plus className="h-3 w-3" /></button>
                 </div>
-                <span className="tnum w-16 text-right text-sm font-semibold">{money(i.price * i.qty)}</span>
+                <span className="tnum shrink-0 text-right text-[13px] font-bold text-slate-800 dark:text-slate-100">{money(i.price * i.qty)}</span>
               </div>
             ))}
           </div>
-          <div className="space-y-2 border-t border-slate-100 px-5 py-4 text-sm dark:border-slate-800">
-            <div className="flex justify-between text-slate-500"><span>Subtotal</span><span className="tnum font-medium text-slate-800 dark:text-slate-100">{money(subtotal)}</span></div>
-            <div className="flex items-center justify-between text-slate-500"><span>Discount %</span><Input type="number" min="0" max="100" value={discountPct} onChange={(e) => setDiscountPct(e.target.value)} className="h-8 w-20 text-right" /></div>
-            {discount > 0 && <div className="flex justify-between text-slate-500"><span>Discount</span><span className="tnum font-medium text-emerald-600">−{money(discount)}</span></div>}
-            <div className="flex justify-between text-slate-500"><span>Tax ({taxRate}%)</span><span className="tnum font-medium text-slate-800 dark:text-slate-100">{money(tax)}</span></div>
-            <div className="flex items-baseline justify-between border-t border-dashed border-slate-200 pt-3 dark:border-slate-700"><span className="font-semibold">Total</span><span className="tnum text-[22px] font-bold tracking-tight text-slate-900 dark:text-white">{money(total)}</span></div>
-            <div className="flex gap-2 pt-2">
+          <div className="space-y-2.5 border-t border-slate-100 bg-slate-50/50 px-4 py-3.5 text-[13px] dark:border-slate-800 dark:bg-slate-800/30">
+            <div className="flex items-center justify-between text-slate-500"><span>Subtotal</span><span className="tnum font-semibold text-slate-800 dark:text-slate-100">{money(subtotal)}</span></div>
+            <div className="flex items-center justify-between gap-2 text-slate-500">
+              <span className="whitespace-nowrap">Discount (%)</span>
+              <div className="flex items-center gap-2">
+                {discount > 0 && <span className="tnum text-[12px] font-medium text-emerald-600">−{money(discount)}</span>}
+                <Input type="number" min="0" max="100" step="any" value={discountPct} onChange={(e) => setDiscountPct(e.target.value)} className="!h-8 !w-20 shrink-0 text-right text-[12.5px]" />
+              </div>
+            </div>
+            <div className="flex items-center justify-between gap-2 text-slate-500">
+              <span className="whitespace-nowrap">Tax (%)</span>
+              <div className="flex items-center gap-2">
+                <span className="tnum text-[12px] font-medium text-slate-600 dark:text-slate-300">{money(tax)}</span>
+                <Input type="number" min="0" max="100" step="any" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} className="!h-8 !w-20 shrink-0 text-right text-[12.5px]" />
+              </div>
+            </div>
+            <div className="flex items-baseline justify-between border-t border-dashed border-slate-200 pt-2.5 dark:border-slate-700"><span className="font-bold text-slate-700 dark:text-slate-200">Total</span><span className="tnum text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">{money(total)}</span></div>
+            <div className="flex gap-2 pt-1">
               <Button variant="secondary" className="flex-1" onClick={() => setCart([])} disabled={!cart.length}><Trash2 className="h-4 w-4" /> Clear</Button>
               <Button className="flex-[2]" onClick={() => { setReceived(""); setPayOpen(true); }} disabled={!cart.length}>Checkout — Pay Now</Button>
             </div>
