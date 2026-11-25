@@ -1,5 +1,6 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -174,9 +175,9 @@ function BranchSelector() {
 }
 
 function NotificationsDrawer({ open, onClose, items }) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-[70] no-print">
+  if (!open || typeof document === "undefined") return null;
+  return createPortal(
+    <div className="fixed inset-0 z-[100] no-print">
       <div className="backdrop-in absolute inset-0 bg-slate-950/45 backdrop-blur-[2px]" onClick={onClose} />
       <aside className="drawer-in absolute inset-y-0 right-0 flex w-[420px] max-w-[92vw] flex-col border-l border-slate-200/80 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5 dark:border-slate-800">
@@ -197,7 +198,8 @@ function NotificationsDrawer({ open, onClose, items }) {
           ))}
         </div>
       </aside>
-    </div>
+    </div>,
+    document.body
   );
 }
 
