@@ -306,9 +306,6 @@ function Topbar({ onMenu, collapsed, onToggleCollapse }) {
           )}
         </div>
         <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
-          <Link href="/setup" title="Running on high-performance local store. Click to connect Supabase" className="hidden h-8 items-center gap-1.5 rounded-full bg-amber-50 px-2.5 text-[11.5px] font-semibold text-amber-700 ring-1 ring-amber-600/20 transition hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-300 xl:inline-flex">
-            <Cloud className="h-3.5 w-3.5" /> Supabase Setup
-          </Link>
           <span className="hidden h-8 items-center gap-1.5 rounded-full border border-slate-200/90 bg-slate-50/80 px-2.5 text-[12px] font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 md:inline-flex">
             <ShieldCheck className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" /> {role}
           </span>
