@@ -89,9 +89,9 @@ export default function PurchasesPage() {
   return (
     <div className="page-in">
       <PageHeader title="Purchase Orders" sub="Manage supplier orders and goods receipts">
-        <div className="relative"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by PO number, supplier…" className="w-64 pl-9" /></div>
-        <Select value={statusF} onChange={(e) => setStatusF(e.target.value)} className="w-40"><option value="all">All Status</option><option>Pending</option><option>Approved</option><option>Received</option><option>Cancelled</option></Select>
-        <Button onClick={openAdd}><Plus className="h-4 w-4" /> New Purchase Order</Button>
+        <div className="relative w-full sm:w-64"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by PO number, supplier…" className="w-full pl-9" /></div>
+        <Select value={statusF} onChange={(e) => setStatusF(e.target.value)} className="w-full sm:w-40"><option value="all">All Status</option><option>Pending</option><option>Approved</option><option>Received</option><option>Cancelled</option></Select>
+        <Button onClick={openAdd} className="w-full sm:w-auto"><Plus className="h-4 w-4" /> New Purchase Order</Button>
       </PageHeader>
       <SchemaBanner error={poQ.error} />
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -121,15 +121,15 @@ export default function PurchasesPage() {
           </div>
           <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-700">
             <p className="mb-3 text-sm font-semibold">Order Items</p>
-            <div className="grid grid-cols-[1fr_90px_110px_auto] items-end gap-2">
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-[1fr_84px_104px_auto] sm:items-end">
               <Field label="Product"><Select value={pick.product_id} onChange={(e) => { const p = prodQ.rows.find((x) => x.id === e.target.value); setPick({ ...pick, product_id: e.target.value, unit_cost: p ? String(n(p.cost)) : pick.unit_cost }); }}><option value="">Select a product…</option>{prodQ.rows.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</Select></Field>
               <Field label="Qty"><Input type="number" step="any" value={pick.qty} onChange={(e) => setPick({ ...pick, qty: e.target.value })} placeholder="0" /></Field>
               <Field label="Unit Cost"><Input type="number" step="any" value={pick.unit_cost} onChange={(e) => setPick({ ...pick, unit_cost: e.target.value })} placeholder="0.00" /></Field>
-              <Button type="button" variant="secondary" onClick={addLine}><Plus className="h-4 w-4" /> Add</Button>
+              <Button type="button" variant="secondary" onClick={addLine} className="w-full sm:w-auto"><Plus className="h-4 w-4" /> Add</Button>
             </div>
             {lines.length === 0 ? <p className="py-4 text-center text-[13px] text-slate-400">No items added yet. Select a product and click Add.</p> : (
               <ul className="mt-3 divide-y divide-slate-100 dark:divide-slate-800">
-                {lines.map((l, i) => <li key={i} className="flex items-center justify-between py-2 text-sm"><span className="font-medium text-slate-700 dark:text-slate-200">{l.product_name}</span><span className="tnum text-slate-500">{n(l.qty)} × {money(l.unit_cost)}</span><span className="tnum font-semibold">{money(n(l.qty) * n(l.unit_cost))}</span><button type="button" onClick={() => setLines(lines.filter((_, j) => j !== i))} className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500"><Trash2 className="h-4 w-4" /></button></li>)}
+                {lines.map((l, i) => <li key={i} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm"><span className="min-w-0 flex-1 truncate font-medium text-slate-700 dark:text-slate-200">{l.product_name}</span><span className="tnum text-slate-500">{n(l.qty)} × {money(l.unit_cost)}</span><span className="tnum font-semibold">{money(n(l.qty) * n(l.unit_cost))}</span><button type="button" onClick={() => setLines(lines.filter((_, j) => j !== i))} className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500"><Trash2 className="h-4 w-4" /></button></li>)}
               </ul>
             )}
             <div className="mt-3 flex justify-between border-t border-dashed border-slate-200 pt-3 text-sm font-bold dark:border-slate-700"><span>Total Amount</span><span className="tnum">{money(total)}</span></div>

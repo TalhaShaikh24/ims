@@ -57,11 +57,11 @@ export default function UsersPage() {
   return (
     <div className="page-in">
       <PageHeader title="Users & Access" sub="Manage team profiles, roles and access status">
-        <div className="relative">
+        <div className="relative w-full sm:w-64">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search users…" className="w-64 pl-9" />
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search users…" className="w-full pl-9" />
         </div>
-        <Button onClick={openAdd}><Plus className="h-4 w-4" /> Add User Profile</Button>
+        <Button onClick={openAdd} className="w-full sm:w-auto"><Plus className="h-4 w-4" /> Add User Profile</Button>
       </PageHeader>
       <SchemaBanner error={profQ.error} />
       <p className="mb-5 flex max-w-3xl items-start gap-2 text-[13px] leading-relaxed text-slate-400">

@@ -52,8 +52,8 @@ export default function ReturnsPage() {
   return (
     <div className="page-in">
       <PageHeader title="Sales Returns" sub="Process product returns and issue refunds — always against a real invoice">
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by return ID or invoice #…" className="w-64" />
-        <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> New Sales Return</Button>
+        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by return ID or invoice #…" className="w-full sm:w-64" />
+        <Button onClick={() => setOpen(true)} className="w-full sm:w-auto"><Plus className="h-4 w-4" /> New Sales Return</Button>
       </PageHeader>
       <SchemaBanner error={retQ.error} />
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">

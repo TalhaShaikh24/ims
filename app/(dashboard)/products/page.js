@@ -53,9 +53,9 @@ export default function ProductsPage() {
   return (
     <div className="page-in">
       <PageHeader title="Products" sub="Manage your product catalog and pricing">
-        <div className="relative"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products…" className="w-60 pl-9" /></div>
-        <Select value={cat} onChange={(e) => setCat(e.target.value)} className="w-44"><option value="all">All Categories</option>{catQ.rows.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>
-        <Button onClick={openAdd}><Plus className="h-4 w-4" /> Add New Product</Button>
+        <div className="relative w-full sm:w-60"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products…" className="w-full pl-9" /></div>
+        <Select value={cat} onChange={(e) => setCat(e.target.value)} className="w-full sm:w-44"><option value="all">All Categories</option>{catQ.rows.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>
+        <Button onClick={openAdd} className="w-full sm:w-auto"><Plus className="h-4 w-4" /> Add New Product</Button>
       </PageHeader>
       <SchemaBanner error={prodQ.error} />
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

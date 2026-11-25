@@ -113,9 +113,9 @@ export function Modal({ open, onClose, title, sub, children, wide }) {
 /* ---------- Page scaffolding ---------- */
 export function PageHeader({ title, sub, children }) {
   return (
-    <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-      <div><h1 className="text-xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white">{title}</h1>{sub && <p className="mt-0.5 text-[13px] text-slate-500 dark:text-slate-400">{sub}</p>}</div>
-      <div className="flex flex-wrap items-center gap-2">{children}</div>
+    <div className="mb-4 flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-end">
+      <div className="min-w-0"><h1 className="text-xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white">{title}</h1>{sub && <p className="mt-0.5 text-[13px] text-slate-500 dark:text-slate-400">{sub}</p>}</div>
+      {children && <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">{children}</div>}
     </div>
   );
 }
@@ -207,7 +207,7 @@ export function DataTable({ columns, rows, loading, empty, pageSize = 10 }) {
           </tbody>
         </table>
       </div>
-      <div className="flex items-center justify-between border-t border-slate-100 px-4 py-2.5 text-[12.5px] text-slate-500 dark:border-slate-800">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-4 py-2.5 text-[12.5px] text-slate-500 dark:border-slate-800">
         <span>Showing {from} to {to} of {rows.length} records</span>
         <div className="flex items-center gap-1.5">
           <button disabled={cur === 0} onClick={() => setPage(cur - 1)} className="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition enabled:hover:bg-slate-50 disabled:opacity-40 dark:border-slate-700 dark:enabled:hover:bg-slate-800" aria-label="Previous page"><ChevronLeft className="h-4 w-4" /></button>

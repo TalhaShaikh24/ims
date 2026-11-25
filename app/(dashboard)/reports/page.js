@@ -73,8 +73,8 @@ export default function ReportsPage() {
   return (
     <div className="page-in">
       <PageHeader title="Reports & Analytics" sub="Business intelligence computed from the same live tables as the dashboard">
-        <Select value={preset} onChange={(e) => setPreset(e.target.value)} className="w-40"><option value="7d">Last 7 Days</option><option value="30d">Last 30 Days</option><option value="month">This Month</option><option value="all">All Time</option></Select>
-        <Button variant="secondary" onClick={exportCsv}><Download className="h-4 w-4" /> Export CSV</Button>
+        <Select value={preset} onChange={(e) => setPreset(e.target.value)} className="w-full sm:w-40"><option value="7d">Last 7 Days</option><option value="30d">Last 30 Days</option><option value="month">This Month</option><option value="all">All Time</option></Select>
+        <Button variant="secondary" onClick={exportCsv} className="w-full sm:w-auto"><Download className="h-4 w-4" /> Export CSV</Button>
       </PageHeader>
       <SchemaBanner error={salesQ.error} />
       <div className="mb-6 flex flex-wrap gap-2">

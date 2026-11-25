@@ -89,26 +89,26 @@ export default function PosPage() {
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[2fr_390px]">
         <div>
-          <div className="mb-4 flex flex-wrap items-center gap-3">
-            <div className="relative min-w-[220px] flex-1">
+          <div className="mb-4 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+            <div className="relative w-full sm:min-w-[220px] sm:flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products by name or SKU…" className="pl-9" />
+              <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products by name or SKU…" className="w-full pl-9" />
             </div>
-            <Select value={customerId} onChange={(e) => setCustomerId(e.target.value)} className="w-56">
+            <Select value={customerId} onChange={(e) => setCustomerId(e.target.value)} className="w-full sm:w-56">
               <option value="">Walk-in Customer</option>
               {custQ.rows.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </Select>
           </div>
           <div className="mb-4 flex flex-wrap gap-2">
-            <button onClick={() => setCat("all")} className={cn("inline-flex h-9 items-center rounded-full px-4 text-[13px] font-semibold transition", cat === "all" ? "bg-[#4F46E5] text-white" : "border border-[#E5E7EB] bg-white text-slate-600 hover:border-indigo-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200")}>All ({prodQ.rows.length})</button>
+            <button onClick={() => setCat("all")} className={cn("inline-flex h-8.5 items-center rounded-full px-3.5 text-[12.5px] font-semibold transition", cat === "all" ? "bg-blue-600 text-white shadow-sm" : "border border-slate-200 bg-white text-slate-600 hover:border-blue-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200")}>All ({prodQ.rows.length})</button>
             {catQ.rows.map((c) => (
-              <button key={c.id} onClick={() => setCat(c.id)} className={cn("inline-flex h-9 items-center rounded-full px-4 text-[13px] font-semibold transition", cat === c.id ? "bg-[#4F46E5] text-white" : "border border-[#E5E7EB] bg-white text-slate-600 hover:border-indigo-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200")}>{c.name} ({prodQ.rows.filter((p) => p.category_id === c.id).length})</button>
+              <button key={c.id} onClick={() => setCat(c.id)} className={cn("inline-flex h-8.5 items-center rounded-full px-3.5 text-[12.5px] font-semibold transition", cat === c.id ? "bg-blue-600 text-white shadow-sm" : "border border-slate-200 bg-white text-slate-600 hover:border-blue-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200")}>{c.name} ({prodQ.rows.filter((p) => p.category_id === c.id).length})</button>
             ))}
           </div>
-          {prodQ.loading ? <div className="grid grid-cols-2 gap-4 md:grid-cols-3">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton h-44" />)}</div>
-            : products.length === 0 ? <Card className="p-10 text-center text-sm text-slate-500">No products match. Add products from the Products page first.</Card>
+          {prodQ.loading ? <div className="grid grid-cols-1 gap-3.5 min-[400px]:grid-cols-2 md:grid-cols-3">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton h-44" />)}</div>
+            : products.length === 0 ? <Card className="p-8 text-center text-sm text-slate-500">No products match. Add products from the Products page first.</Card>
             : (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3.5 min-[400px]:grid-cols-2 md:grid-cols-3">
                 {products.map((p) => {
                   const low = n(p.stock) <= n(p.low_stock_at), out = n(p.stock) <= 0;
                   return (
@@ -167,9 +167,9 @@ export default function PosPage() {
       <Modal open={payOpen} onClose={() => setPayOpen(false)} title="Complete Payment" sub={`Total amount due ${money(total)}`}>
         <div className="space-y-5">
           <Field label="Payment Method">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
               {[["Cash", Banknote], ["Card", CreditCard], ["Digital Wallet", Wallet]].map(([m, Icon]) => (
-                <button key={m} onClick={() => setMethod(m)} className={cn("flex h-11 items-center justify-center gap-2 rounded-lg border text-sm font-medium transition", method === m ? "border-indigo-600 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300" : "border-slate-200 text-slate-600 hover:border-slate-300 dark:border-slate-700")}>
+                <button key={m} onClick={() => setMethod(m)} className={cn("flex h-10 items-center justify-center gap-2 rounded-lg border text-sm font-medium transition", method === m ? "border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600 dark:bg-blue-500/10 dark:text-blue-300" : "border-slate-200 text-slate-600 hover:border-slate-300 dark:border-slate-700")}>
                   <Icon className="h-4 w-4" /> {m === "Digital Wallet" ? "Wallet" : m}
                 </button>
               ))}
@@ -181,13 +181,13 @@ export default function PosPage() {
                 <Input type="number" min="0" step="any" value={received} onChange={(e) => setReceived(e.target.value)} placeholder="0.00" autoFocus />
               </Field>
               <div className="flex flex-wrap gap-2">
-                {[10, 20, 50, 100].map((a) => <Button key={a} size="sm" variant="secondary" onClick={() => setReceived(String(a))}>${a}</Button>)}
+                {[100, 500, 1000, 5000].map((a) => <Button key={a} size="sm" variant="secondary" onClick={() => setReceived(String(a))}>PKR {a}</Button>)}
                 <Button size="sm" variant="secondary" onClick={() => setReceived(String(total))}>Exact {money(total)}</Button>
               </div>
               {received !== "" && <div className="flex items-center justify-between rounded-lg bg-emerald-50 px-4 py-3 dark:bg-emerald-500/10"><span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Change Due</span><span className="tnum text-lg font-bold text-emerald-700 dark:text-emerald-300">{money(Math.max(0, change))}</span></div>}
             </>
           )}
-          <div className="flex justify-end gap-2 pt-1">
+          <div className="flex flex-wrap justify-end gap-2 pt-1">
             <Button variant="secondary" onClick={() => setPayOpen(false)}>Cancel Payment</Button>
             <Button onClick={completeSale} disabled={saving}>{saving ? "Processing…" : `Complete Sale — ${money(total)}`}</Button>
           </div>

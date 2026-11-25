@@ -20,9 +20,9 @@ export default function AuditLogsPage() {
   return (
     <div className="page-in">
       <PageHeader title="Audit Logs" sub="Every create, update, delete and sale in the system is recorded here">
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by user, action or details…" className="w-72" />
-        <Select value={action} onChange={(e) => setAction(e.target.value)} className="w-40"><option value="all">All Actions</option>{actions.map((a) => <option key={a}>{a}</option>)}</Select>
-        <Button variant="secondary" onClick={exportCsv}><Download className="h-4 w-4" /> Export CSV</Button>
+        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by user, action or details…" className="w-full sm:w-72" />
+        <Select value={action} onChange={(e) => setAction(e.target.value)} className="w-full sm:w-40"><option value="all">All Actions</option>{actions.map((a) => <option key={a}>{a}</option>)}</Select>
+        <Button variant="secondary" onClick={exportCsv} className="w-full sm:w-auto"><Download className="h-4 w-4" /> Export CSV</Button>
       </PageHeader>
       <SchemaBanner error={logsQ.error} />
       <div className="mb-5 flex flex-wrap gap-4 text-sm text-slate-500">

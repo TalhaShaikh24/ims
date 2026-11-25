@@ -49,10 +49,10 @@ export default function SalesPage() {
         <StatCard label="Paid Invoices" value={String(rows.filter((s) => s.status === "Paid").length)} sub="Fully settled" icon={CircleDollarSign} tone="emerald" />
         <StatCard label="Total Discount" value={money(discounts)} sub="Discounts given" icon={Percent} tone="amber" />
       </div>
-      <div className="mb-4 flex flex-wrap gap-3">
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by invoice #, customer…" className="w-72" />
-        <Select value={status} onChange={(e) => setStatus(e.target.value)} className="w-40"><option value="all">All Status</option><option>Paid</option><option>Pending</option><option>Refunded</option></Select>
-        <Select value={sort} onChange={(e) => setSort(e.target.value)} className="w-44"><option value="new">Newest First</option><option value="old">Oldest First</option><option value="high">Highest Amount</option><option value="low">Lowest Amount</option></Select>
+      <div className="mb-4 flex flex-wrap gap-2.5 sm:gap-3">
+        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by invoice #, customer…" className="w-full sm:w-72" />
+        <Select value={status} onChange={(e) => setStatus(e.target.value)} className="w-[calc(50%-5px)] sm:w-40"><option value="all">All Status</option><option>Paid</option><option>Pending</option><option>Refunded</option></Select>
+        <Select value={sort} onChange={(e) => setSort(e.target.value)} className="w-[calc(50%-5px)] sm:w-44"><option value="new">Newest First</option><option value="old">Oldest First</option><option value="high">Highest Amount</option><option value="low">Lowest Amount</option></Select>
       </div>
       <Card>
         <DataTable rows={rows} loading={salesQ.loading} columns={[

@@ -69,8 +69,8 @@ export default function InventoryPage() {
           {TABS.map(([v, l]) => <button key={v} onClick={() => setTab(v)} className={cn("rounded-lg px-4 py-2 text-sm font-medium transition", tab === v ? "bg-slate-900 text-white shadow-sm dark:bg-white dark:text-slate-900" : "bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-slate-300 dark:bg-slate-900 dark:ring-slate-700")}>{l}{v === "low" ? ` (${low.length + out.length})` : v === "movements" ? ` (${movQ.rows.length})` : ""}</button>)}
         </div>
         {tab !== "movements" && <>
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by product name or SKU…" className="w-64" />
-          {tab === "levels" && <Select value={filter} onChange={(e) => setFilter(e.target.value)} className="w-44"><option value="all">All Items</option><option value="low">Low Stock Only</option><option value="out">Out of Stock</option></Select>}
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by product name or SKU…" className="w-full sm:w-64" />
+          {tab === "levels" && <Select value={filter} onChange={(e) => setFilter(e.target.value)} className="w-full sm:w-44"><option value="all">All Items</option><option value="low">Low Stock Only</option><option value="out">Out of Stock</option></Select>}
         </>}
       </div>
       <Card>
