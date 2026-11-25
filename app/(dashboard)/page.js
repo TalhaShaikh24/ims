@@ -82,7 +82,7 @@ export default function DashboardPage() {
       </PageHeader>
       <SchemaBanner error={error} />
 
-      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="stagger-in grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <StatCard compact label="Total Sales" value={money(d.revenue)} sub={`${d.sales.length} invoice${d.sales.length === 1 ? "" : "s"}`} icon={CircleDollarSign} tone="indigo" delta={preset === "all" ? null : d.deltaSales} />
         <StatCard compact label="Gross Profit" value={money(d.gross)} sub="Revenue − COGS" icon={TrendingUp} tone="emerald" />
         <StatCard compact label="Net Profit" value={money(d.net)} sub="After expenses" icon={Landmark} tone={d.net >= 0 ? "emerald" : "red"} />
@@ -91,7 +91,7 @@ export default function DashboardPage() {
         <StatCard compact label="Supplier Payables" value={money(d.payables)} sub="Accounts payable" icon={Wallet} tone="violet" />
       </div>
 
-      <div className="mt-3.5 grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="stagger-in mt-3.5 grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Total Products" value={String(d.products.length)} sub="In active catalog" icon={Package} tone="indigo" />
         <StatCard label="Low Stock Alert" value={String(d.lowStock.length)} sub="Re-order required" icon={AlertTriangle} tone={d.lowStock.length ? "red" : "slate"} />
         <StatCard label="Inventory Value (Cost)" value={money(d.invValue)} sub={`Retail: ${money(d.invRetail)}`} icon={Boxes} tone="cyan" />

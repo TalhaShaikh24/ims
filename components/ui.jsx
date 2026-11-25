@@ -30,7 +30,7 @@ export function ToastProvider({ children }) {
 
 /* ---------- Primitives ---------- */
 export function Button({ variant = "primary", size = "md", className, ...props }) {
-  const base = "inline-flex items-center justify-center gap-1.5 font-semibold rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap";
+  const base = "inline-flex items-center justify-center gap-1.5 font-semibold rounded-lg transition-all duration-150 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap";
   const sizes = { sm: "h-8 px-2.5 text-[12.5px]", md: "h-9 px-3.5 text-[13px]", lg: "h-10 px-4.5 text-[13.5px]" };
   const variants = {
     primary: "bg-blue-600 text-white shadow-[0_1px_2px_rgba(37,99,235,0.28)] hover:bg-blue-700 active:bg-blue-700",
@@ -98,8 +98,8 @@ export function Modal({ open, onClose, title, sub, children, wide }) {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[90] flex items-end justify-center p-0 sm:items-center sm:p-5 no-print">
-      <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[3px]" onClick={onClose} />
-      <div className={cn("page-in relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-xl border border-slate-200/80 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900 sm:rounded-xl", wide ? "max-w-3xl" : "max-w-2xl")}>
+      <div className="backdrop-in absolute inset-0 bg-slate-950/60 backdrop-blur-[3px]" onClick={onClose} />
+      <div className={cn("modal-in relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-xl border border-slate-200/80 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900 sm:rounded-xl", wide ? "max-w-3xl" : "max-w-2xl")}>
         <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 dark:border-slate-800">
           <div><h2 className="text-[16px] font-bold text-slate-900 dark:text-white">{title}</h2>{sub && <p className="mt-0.5 text-[12.5px] text-slate-500">{sub}</p>}</div>
           <button onClick={onClose} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800" aria-label="Close"><X className="h-4.5 w-4.5" /></button>
@@ -132,10 +132,10 @@ const KPI_TONES = {
 };
 export function StatCard({ label, value, sub, icon: Icon, tone = "indigo", delta, compact }) {
   return (
-    <Card className={cn("transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_6px_18px_-4px_rgba(15,23,42,0.08)]", compact ? "p-3.5" : "p-4")}>
+    <Card className={cn("group transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_22px_-4px_rgba(15,23,42,0.09)]", compact ? "p-3.5" : "p-4")}>
       <div className="flex items-start justify-between gap-2">
         <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">{label}</p>
-        {Icon && <div className={cn("flex shrink-0 items-center justify-center rounded-lg", compact ? "h-8 w-8" : "h-9 w-9", KPI_TONES[tone] || KPI_TONES.indigo)}><Icon className={compact ? "h-4 w-4" : "h-4.5 w-4.5"} /></div>}
+        {Icon && <div className={cn("flex shrink-0 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-110", compact ? "h-8 w-8" : "h-9 w-9", KPI_TONES[tone] || KPI_TONES.indigo)}><Icon className={compact ? "h-4 w-4" : "h-4.5 w-4.5"} /></div>}
       </div>
       <p className={cn("tnum truncate font-extrabold leading-none tracking-tight text-slate-900 dark:text-white", compact ? "mt-1.5 text-[20px]" : "mt-2 text-[23px]")}>{value}</p>
       {sub && <p className="mt-1.5 truncate text-[12px] text-slate-400">{sub}</p>}

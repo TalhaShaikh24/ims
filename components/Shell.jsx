@@ -112,7 +112,7 @@ function Sidebar({ onNavigate, collapsed = false }) {
                           : "text-slate-400 hover:bg-white/[0.06] hover:text-slate-100"
                       )}
                     >
-                      <it.icon className={cn("h-4 w-4 shrink-0 transition-colors", active ? "text-white" : "text-slate-400 group-hover:text-slate-200")} strokeWidth={1.9} />
+                      <it.icon className={cn("h-4 w-4 shrink-0 transition-transform duration-150 group-hover:scale-110", active ? "text-white" : "text-slate-400 group-hover:text-slate-200")} strokeWidth={1.9} />
                       {!collapsed && <span className="truncate">{it.label}</span>}
                     </Link>
                   </li>
@@ -152,7 +152,7 @@ function BranchSelector() {
         <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-400" />
       </button>
       {open && (
-        <div className="absolute left-0 top-10 z-50 w-[250px] rounded-xl border border-slate-200/90 bg-white p-1.5 shadow-[0_10px_30px_-5px_rgba(15,23,42,0.14)] dark:border-slate-700 dark:bg-slate-800">
+        <div className="dropdown-in absolute left-0 top-10 z-50 w-[250px] rounded-xl border border-slate-200/90 bg-white p-1.5 shadow-[0_10px_30px_-5px_rgba(15,23,42,0.14)] dark:border-slate-700 dark:bg-slate-800">
           <p className="px-2.5 pb-1 pt-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Select Operating Branch</p>
           {[{ id: "all", name: "All Branches", code: "Combined view", is_main: false }, ...branches].map((b) => {
             const selected = branchId === b.id;
@@ -177,8 +177,8 @@ function NotificationsDrawer({ open, onClose, items }) {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[70] no-print">
-      <div className="absolute inset-0 bg-slate-950/45 backdrop-blur-[2px]" onClick={onClose} />
-      <aside className="absolute inset-y-0 right-0 flex w-[420px] max-w-[92vw] flex-col border-l border-slate-200/80 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+      <div className="backdrop-in absolute inset-0 bg-slate-950/45 backdrop-blur-[2px]" onClick={onClose} />
+      <aside className="drawer-in absolute inset-y-0 right-0 flex w-[420px] max-w-[92vw] flex-col border-l border-slate-200/80 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5 dark:border-slate-800">
           <h2 className="text-[14px] font-bold text-slate-900 dark:text-white">Notifications</h2>
           <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800" aria-label="Close notifications"><X className="h-4 w-4" /></button>
@@ -336,7 +336,7 @@ function Topbar({ onMenu, collapsed, onToggleCollapse }) {
               <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
             </button>
             {showProfile && (
-              <div className="absolute right-0 top-10 z-50 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_12px_32px_-4px_rgba(15,23,42,0.14)] dark:border-slate-700 dark:bg-slate-800">
+              <div className="dropdown-in absolute right-0 top-10 z-50 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_12px_32px_-4px_rgba(15,23,42,0.14)] dark:border-slate-700 dark:bg-slate-800">
                 <div className="border-b border-slate-100 px-3.5 py-3 dark:border-slate-700">
                   <p className="truncate text-[13px] font-bold text-slate-900 dark:text-white">{displayName}</p>
                   <p className="truncate text-[11.5px] text-slate-400">{user?.email || profile?.email || ""}</p>
