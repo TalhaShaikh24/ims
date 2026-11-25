@@ -20,7 +20,8 @@ export default function PosPage() {
   const [search, setSearch] = useState("");
   const [customerId, setCustomerId] = useState("");
   const [cart, setCart] = useState([]);
-  const [discountPct, setDiscountPct] = useState(0);
+  const [discountType, setDiscountType] = useState("pct");
+  const [discountVal, setDiscountVal] = useState(0);
   const [taxRate, setTaxRate] = useState(0);
   const [payOpen, setPayOpen] = useState(false);
   const [method, setMethod] = useState("Cash");
@@ -33,9 +34,22 @@ export default function PosPage() {
   const products = useMemo(() => prodQ.rows.filter((p) => (cat === "all" || p.category_id === cat) && (p.name + " " + (p.sku || "")).toLowerCase().includes(search.toLowerCase())), [prodQ.rows, cat, search]);
   const catName = useMemo(() => new Map(catQ.rows.map((c) => [c.id, c.name])), [catQ.rows]);
 
-  const subtotal = cart.reduce((a, i) => a + n(i.price) * i.qty, 0);
-  const discount = round2(subtotal * (n(discountPct) / 100));
-  const taxable = subtotal - discount;
+  const itemCalc = (i) => {
+    const gross = round2(n(i.price) * i.qty);
+    const disc = i.discType === "amt"
+      ? Math.min(gross, Math.max(0, round2(n(i.discVal))))
+      : round2(gross * (Math.min(100, Math.max(0, n(i.discVal))) / 100));
+    return { gross, disc, net: round2(Math.max(0, gross - disc)) };
+  };
+
+  const subtotal = round2(cart.reduce((a, i) => a + itemCalc(i).gross, 0));
+  const itemDiscount = round2(cart.reduce((a, i) => a + itemCalc(i).disc, 0));
+  const afterItemDisc = round2(Math.max(0, subtotal - itemDiscount));
+  const wholeDiscount = discountType === "amt"
+    ? Math.min(afterItemDisc, Math.max(0, round2(n(discountVal))))
+    : round2(afterItemDisc * (Math.min(100, Math.max(0, n(discountVal))) / 100));
+  const discount = round2(itemDiscount + wholeDiscount);
+  const taxable = round2(Math.max(0, afterItemDisc - wholeDiscount));
   const tax = round2(taxable * (n(taxRate) / 100));
   const total = round2(taxable + tax);
   const change = round2(n(received) - total);
@@ -45,10 +59,11 @@ export default function PosPage() {
     setCart((c) => {
       const ex = c.find((i) => i.id === p.id);
       if (ex) return c.map((i) => i.id === p.id ? { ...i, qty: Math.min(i.qty + 1, n(p.stock)) } : i);
-      return [...c, { id: p.id, name: p.name, price: n(p.price), cost: n(p.cost), stock: n(p.stock), qty: 1 }];
+      return [...c, { id: p.id, name: p.name, price: n(p.price), cost: n(p.cost), stock: n(p.stock), qty: 1, discType: "pct", discVal: 0 }];
     });
   }
   const setQty = (id, qty) => setCart((c) => qty <= 0 ? c.filter((i) => i.id !== id) : c.map((i) => i.id === id ? { ...i, qty: Math.min(qty, i.stock) } : i));
+  const setItemDisc = (id, patch) => setCart((c) => c.map((i) => i.id === id ? { ...i, ...patch } : i));
 
   function hold() { localStorage.setItem("xona_hold", JSON.stringify(cart)); setHeld(cart); setCart([]); toast("Sale held — resume it any time."); }
   function resume() { if (held) { setCart(held); localStorage.removeItem("xona_hold"); setHeld(null); } }
@@ -61,11 +76,11 @@ export default function PosPage() {
     const invoice_no = docNo("INV");
     const { data: sale, error } = await sb.from("sales").insert({
       invoice_no, customer_id: customerId || null, branch_id, payment_method: method,
-      status: "Paid", subtotal: round2(subtotal), discount, tax_rate: taxRate, tax_amount: tax, total, amount_paid: total,
+      status: "Paid", subtotal, discount, tax_rate: n(taxRate), tax_amount: tax, total, amount_paid: total,
       cashier_name: localStorage.getItem("xona_profile_name") || "Admin",
     }).select().single();
     if (error) { setSaving(false); return toast(error.message, "error"); }
-    const items = cart.map((i) => ({ sale_id: sale.id, product_id: i.id, product_name: i.name, price: i.price, cost: i.cost, qty: i.qty, line_total: round2(i.price * i.qty) }));
+    const items = cart.map((i) => ({ sale_id: sale.id, product_id: i.id, product_name: i.name, price: i.price, cost: i.cost, qty: i.qty, line_total: itemCalc(i).net }));
     const { error: iErr } = await sb.from("sale_items").insert(items);
     if (iErr) { setSaving(false); return toast(iErr.message, "error"); }
     for (const i of cart) {
@@ -136,40 +151,65 @@ export default function PosPage() {
             <h3 className="flex items-center gap-2 text-[14px] font-bold text-slate-900 dark:text-white"><ShoppingCart className="h-4 w-4 text-blue-600 dark:text-blue-400" /> Current Sale</h3>
             <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">{cart.reduce((a, i) => a + i.qty, 0)} items</span>
           </div>
-          <div className="max-h-[320px] overflow-y-auto px-4 py-2.5">
+          <div className="max-h-[340px] overflow-y-auto px-4 py-2.5">
             {cart.length === 0 ? (
               <div className="py-8 text-center"><ShoppingCart className="mx-auto h-7 w-7 text-slate-300" /><p className="mt-2.5 text-[13.5px] font-semibold text-slate-600 dark:text-slate-300">Your cart is empty</p><p className="mt-0.5 text-[12.5px] text-slate-400">Click a product to add it to the sale.</p></div>
-            ) : cart.map((i) => (
-              <div key={i.id} className="flex items-center gap-2.5 border-b border-slate-100 py-2.5 last:border-0 dark:border-slate-800">
-                <div className="min-w-0 flex-1"><p className="truncate text-[13px] font-semibold text-slate-800 dark:text-slate-100">{i.name}</p><p className="tnum text-[11.5px] text-slate-400">{money(i.price)} each</p></div>
-                <div className="flex shrink-0 items-center gap-1">
-                  <button onClick={() => setQty(i.id, i.qty - 1)} className="flex h-6.5 w-6.5 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700"><Minus className="h-3 w-3" /></button>
-                  <span className="tnum w-5 text-center text-[12.5px] font-semibold">{i.qty}</span>
-                  <button onClick={() => setQty(i.id, i.qty + 1)} className="flex h-6.5 w-6.5 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700"><Plus className="h-3 w-3" /></button>
+            ) : cart.map((i) => {
+              const calc = itemCalc(i);
+              return (
+                <div key={i.id} className="border-b border-slate-100 py-2.5 last:border-0 dark:border-slate-800">
+                  <div className="flex items-center gap-2.5">
+                    <div className="min-w-0 flex-1"><p className="truncate text-[13px] font-semibold text-slate-800 dark:text-slate-100">{i.name}</p><p className="tnum text-[11.5px] text-slate-400">{money(i.price)} each</p></div>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <button onClick={() => setQty(i.id, i.qty - 1)} className="flex h-6.5 w-6.5 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700"><Minus className="h-3 w-3" /></button>
+                      <span className="tnum w-5 text-center text-[12.5px] font-semibold">{i.qty}</span>
+                      <button onClick={() => setQty(i.id, i.qty + 1)} className="flex h-6.5 w-6.5 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700"><Plus className="h-3 w-3" /></button>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <span className="tnum block text-[13px] font-bold text-slate-800 dark:text-slate-100">{money(calc.net)}</span>
+                      {calc.disc > 0 && <span className="tnum block text-[10.5px] text-emerald-600">−{money(calc.disc)}</span>}
+                    </div>
+                  </div>
+                  <div className="mt-1.5 flex items-center justify-between gap-2">
+                    <span className="text-[11px] text-slate-400">Item Discount</span>
+                    <div className="flex items-center gap-1">
+                      <div className="inline-flex rounded-md border border-slate-200 bg-slate-50 p-0.5 dark:border-slate-700 dark:bg-slate-800">
+                        {[["pct", "%"], ["amt", "PKR"]].map(([t, lbl]) => (
+                          <button key={t} type="button" onClick={() => setItemDisc(i.id, { discType: t })} className={cn("rounded px-1.5 py-0.5 text-[10px] font-bold transition", (i.discType || "pct") === t ? "bg-blue-600 text-white" : "text-slate-500 hover:text-slate-700 dark:text-slate-400")}>{lbl}</button>
+                        ))}
+                      </div>
+                      <Input type="number" min="0" step="any" value={i.discVal ?? 0} onChange={(e) => setItemDisc(i.id, { discVal: e.target.value })} className="!h-6.5 !w-16 px-1.5 text-right text-[11.5px]" />
+                    </div>
+                  </div>
                 </div>
-                <span className="tnum shrink-0 text-right text-[13px] font-bold text-slate-800 dark:text-slate-100">{money(i.price * i.qty)}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <div className="space-y-2.5 border-t border-slate-100 bg-slate-50/50 px-4 py-3.5 text-[13px] dark:border-slate-800 dark:bg-slate-800/30">
             <div className="flex items-center justify-between text-slate-500"><span>Subtotal</span><span className="tnum font-semibold text-slate-800 dark:text-slate-100">{money(subtotal)}</span></div>
+            {itemDiscount > 0 && <div className="flex items-center justify-between text-slate-500"><span>Item Discounts</span><span className="tnum font-medium text-emerald-600">−{money(itemDiscount)}</span></div>}
             <div className="flex items-center justify-between gap-2 text-slate-500">
-              <span className="whitespace-nowrap">Discount (%)</span>
-              <div className="flex items-center gap-2">
-                {discount > 0 && <span className="tnum text-[12px] font-medium text-emerald-600">−{money(discount)}</span>}
-                <Input type="number" min="0" max="100" step="any" value={discountPct} onChange={(e) => setDiscountPct(e.target.value)} className="!h-8 !w-20 shrink-0 text-right text-[12.5px]" />
+              <span className="whitespace-nowrap">Sale Discount</span>
+              <div className="flex items-center gap-1.5">
+                {wholeDiscount > 0 && <span className="tnum text-[11.5px] font-medium text-emerald-600">−{money(wholeDiscount)}</span>}
+                <div className="inline-flex rounded-md border border-slate-200 bg-white p-0.5 dark:border-slate-700 dark:bg-slate-800">
+                  {[["pct", "%"], ["amt", "PKR"]].map(([t, lbl]) => (
+                    <button key={t} type="button" onClick={() => setDiscountType(t)} className={cn("rounded px-1.5 py-0.5 text-[10.5px] font-bold transition", discountType === t ? "bg-blue-600 text-white" : "text-slate-500 hover:text-slate-700 dark:text-slate-400")}>{lbl}</button>
+                  ))}
+                </div>
+                <Input type="number" min="0" step="any" value={discountVal} onChange={(e) => setDiscountVal(e.target.value)} className="!h-8 !w-18 shrink-0 text-right text-[12.5px]" />
               </div>
             </div>
             <div className="flex items-center justify-between gap-2 text-slate-500">
               <span className="whitespace-nowrap">Tax (%)</span>
               <div className="flex items-center gap-2">
                 <span className="tnum text-[12px] font-medium text-slate-600 dark:text-slate-300">{money(tax)}</span>
-                <Input type="number" min="0" max="100" step="any" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} className="!h-8 !w-20 shrink-0 text-right text-[12.5px]" />
+                <Input type="number" min="0" max="100" step="any" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} className="!h-8 !w-18 shrink-0 text-right text-[12.5px]" />
               </div>
             </div>
             <div className="flex items-baseline justify-between border-t border-dashed border-slate-200 pt-2.5 dark:border-slate-700"><span className="font-bold text-slate-700 dark:text-slate-200">Total</span><span className="tnum text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">{money(total)}</span></div>
             <div className="flex gap-2 pt-1">
-              <Button variant="secondary" className="flex-1" onClick={() => setCart([])} disabled={!cart.length}><Trash2 className="h-4 w-4" /> Clear</Button>
+              <Button variant="secondary" className="flex-1" onClick={() => { setCart([]); setDiscountVal(0); }} disabled={!cart.length}><Trash2 className="h-4 w-4" /> Clear</Button>
               <Button className="flex-[2]" onClick={() => { setReceived(""); setPayOpen(true); }} disabled={!cart.length}>Checkout — Pay Now</Button>
             </div>
           </div>
