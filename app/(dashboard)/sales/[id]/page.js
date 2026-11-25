@@ -13,7 +13,7 @@ export default function InvoicePage({ params }) {
   const [items, setItems] = useState([]);
   const [customer, setCustomer] = useState(null);
   const [branch, setBranch] = useState(null);
-  const [org, setOrg] = useState({ business_name: "XonaERP" });
+  const [org, setOrg] = useState({ business_name: "IMS" });
   const [receipt, setReceipt] = useState({});
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -31,7 +31,7 @@ export default function InvoicePage({ params }) {
         s.branch_id ? sb.from("branches").select("*").eq("id", s.branch_id).maybeSingle() : Promise.resolve({ data: null }),
       ]);
       setItems(its || []); setCustomer(cust); setBranch(br);
-      setOrg(await getSetting("org", { business_name: "XonaERP" }));
+      setOrg(await getSetting("org", { business_name: "IMS" }));
       setReceipt(await getSetting("receipt", {}));
       setLoading(false);
     })();
@@ -42,49 +42,52 @@ export default function InvoicePage({ params }) {
 
   return (
     <div className="page-in">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 no-print">
-        <Link href="/sales" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-indigo-600"><ArrowLeft className="h-4 w-4" /> Back to Sales Invoices</Link>
-        <Button onClick={() => window.print()}><Printer className="h-4 w-4" /> Print Receipt</Button>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 no-print">
+        <Link href="/sales" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-blue-600"><ArrowLeft className="h-4 w-4" /> Back to Sales Invoices</Link>
+        <div className="flex items-center gap-2">
+          <span className="hidden text-xs text-slate-400 sm:inline">Print format: A4 Landscape (1/4th)</span>
+          <Button onClick={() => window.print()}><Printer className="h-4 w-4" /> Print Receipt</Button>
+        </div>
       </div>
-      <Card className="print-area mx-auto max-w-3xl">
-        <div className="border-b border-slate-100 px-8 py-6 dark:border-slate-800">
-          <div className="flex flex-wrap items-start justify-between gap-4">
+      <Card className="print-area print-quarter mx-auto max-w-3xl">
+        <div className="border-b border-slate-100 px-6 py-4 dark:border-slate-800 print:px-3 print:py-2">
+          <div className="flex flex-wrap items-start justify-between gap-3 print:gap-2">
             <div>
-              <div className="flex items-center gap-2.5"><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 font-bold text-white">X</div><span className="text-lg font-semibold">{org.business_name || "XonaERP"}</span></div>
-              <p className="mt-2 text-[13px] text-slate-500">{receipt.header || ""}</p>
+              <div className="flex items-center gap-2"><div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-xs font-bold text-white print:h-6 print:w-6 print:text-[10px]">IMS</div><span className="text-base font-bold print:text-xs">{org.business_name || "IMS"}</span></div>
+              {receipt.header && <p className="mt-1 text-[12px] text-slate-500 print:mt-0.5 print:text-[9px]">{receipt.header}</p>}
             </div>
             <div className="text-right">
-              <p className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">{sale.invoice_no}</p>
-              <p className="mt-1 text-[13px] text-slate-500">{fmtDate(sale.created_at, true)}</p>
-              <div className="mt-2">{statusBadge(sale.status)}</div>
+              <p className="text-lg font-bold tracking-tight text-slate-900 dark:text-white print:text-xs">{sale.invoice_no}</p>
+              <p className="mt-0.5 text-[12px] text-slate-500 print:text-[9px]">{fmtDate(sale.created_at, true)}</p>
+              <div className="mt-1 print:hidden">{statusBadge(sale.status)}</div>
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4 px-8 py-5 text-sm sm:grid-cols-4">
-          {[["Customer", customer?.name || "Walk-in Customer"], ["Branch", branch?.name || "—"], ["Payment Method", sale.payment_method], ["Cashier", sale.cashier_name || "Admin"]].map(([k, v]) => (
-            <div key={k}><p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{k}</p><p className="mt-1 font-medium text-slate-800 dark:text-slate-100">{v}</p></div>
+        <div className="grid grid-cols-2 gap-3 px-6 py-3.5 text-sm sm:grid-cols-4 print:grid-cols-4 print:gap-1.5 print:px-3 print:py-1.5 print:text-[9.5px]">
+          {[["Customer", customer?.name || "Walk-in Customer"], ["Branch", branch?.name || "—"], ["Payment", sale.payment_method], ["Cashier", sale.cashier_name || "Admin"]].map(([k, v]) => (
+            <div key={k}><p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 print:text-[8px]">{k}</p><p className="mt-0.5 truncate font-medium text-slate-800 dark:text-slate-100">{v}</p></div>
           ))}
         </div>
-        <div className="px-8">
-          <table className="w-full text-sm">
-            <thead><tr className="border-y border-slate-200 bg-slate-50/80 dark:border-slate-700 dark:bg-slate-800/40"><th className="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">Item</th><th className="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-slate-500">Price</th><th className="px-3 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-500">Qty</th><th className="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider text-slate-500">Total</th></tr></thead>
+        <div className="px-6 print:px-3">
+          <table className="w-full text-sm print:text-[9.5px]">
+            <thead><tr className="border-y border-slate-200 bg-slate-50/80 dark:border-slate-700 dark:bg-slate-800/40"><th className="px-2.5 py-2 text-left text-[10.5px] font-semibold uppercase tracking-wider text-slate-500 print:px-1.5 print:py-1 print:text-[8.5px]">Item</th><th className="px-2.5 py-2 text-right text-[10.5px] font-semibold uppercase tracking-wider text-slate-500 print:px-1.5 print:py-1 print:text-[8.5px]">Price</th><th className="px-2.5 py-2 text-center text-[10.5px] font-semibold uppercase tracking-wider text-slate-500 print:px-1.5 print:py-1 print:text-[8.5px]">Qty</th><th className="px-2.5 py-2 text-right text-[10.5px] font-semibold uppercase tracking-wider text-slate-500 print:px-1.5 print:py-1 print:text-[8.5px]">Total</th></tr></thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {items.map((i) => (
-                <tr key={i.id}><td className="px-3 py-3 font-medium text-slate-800 dark:text-slate-100">{i.product_name}</td><td className="tnum px-3 py-3 text-right text-slate-500">{money(i.price)}</td><td className="tnum px-3 py-3 text-center text-slate-500">{n(i.qty)}</td><td className="tnum px-3 py-3 text-right font-semibold">{money(n(i.price) * n(i.qty))}</td></tr>
+                <tr key={i.id}><td className="px-2.5 py-2 font-medium text-slate-800 dark:text-slate-100 print:px-1.5 print:py-1">{i.product_name}</td><td className="tnum px-2.5 py-2 text-right text-slate-500 print:px-1.5 print:py-1">{money(i.price)}</td><td className="tnum px-2.5 py-2 text-center text-slate-500 print:px-1.5 print:py-1">{n(i.qty)}</td><td className="tnum px-2.5 py-2 text-right font-semibold print:px-1.5 print:py-1">{money(i.line_total ?? n(i.price) * n(i.qty))}</td></tr>
               ))}
             </tbody>
           </table>
         </div>
-        <div className="flex justify-end px-8 py-6">
-          <div className="w-64 space-y-2 text-sm">
+        <div className="flex justify-end px-6 py-4 print:px-3 print:py-2">
+          <div className="w-64 space-y-1.5 text-sm print:w-48 print:space-y-0.5 print:text-[9.5px]">
             <div className="flex justify-between text-slate-500"><span>Subtotal</span><span className="tnum font-medium text-slate-800 dark:text-slate-100">{money(sale.subtotal)}</span></div>
             {n(sale.discount) > 0 && <div className="flex justify-between text-slate-500"><span>Discount</span><span className="tnum font-medium text-emerald-600">−{money(sale.discount)}</span></div>}
             {receipt.show_tax !== false && <div className="flex justify-between text-slate-500"><span>Tax ({n(sale.tax_rate)}%)</span><span className="tnum font-medium text-slate-800 dark:text-slate-100">{money(sale.tax_amount)}</span></div>}
-            <div className="flex justify-between border-t border-dashed border-slate-200 pt-3 text-base font-bold dark:border-slate-700"><span>Total</span><span className="tnum">{money(sale.total)}</span></div>
+            <div className="flex justify-between border-t border-dashed border-slate-200 pt-2 text-base font-bold dark:border-slate-700 print:pt-1 print:text-[11px]"><span>Total</span><span className="tnum">{money(sale.total)}</span></div>
             <div className="flex justify-between text-slate-500"><span>Amount Paid</span><span className="tnum font-medium">{money(sale.amount_paid)}</span></div>
           </div>
         </div>
-        <p className="border-t border-slate-100 px-8 py-4 text-center text-[13px] text-slate-400 dark:border-slate-800">{receipt.footer || "Thank you for your business!"}</p>
+        <p className="border-t border-slate-100 px-6 py-3 text-center text-[12px] text-slate-400 dark:border-slate-800 print:px-3 print:py-1.5 print:text-[9px]">{receipt.footer || "Thank you for your business!"}</p>
       </Card>
     </div>
   );
