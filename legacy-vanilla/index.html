@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XonaERP — POS & Business Management</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app" class="app">
+  <aside id="sidebar" class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">X</div>
+      <div class="brand-text"><strong>XonaERP</strong><span>POS &amp; Business OS</span></div>
+      <button id="sidebarClose" class="icon-btn sidebar-close" aria-label="Close menu">&times;</button>
+    </div>
+    <nav id="nav" class="nav"></nav>
+    <div class="sidebar-foot">XonaERP v2.0 &middot; Supabase</div>
+  </aside>
+  <div id="scrim" class="scrim"></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button id="hamburger" class="icon-btn" aria-label="Menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <select id="branchSwitcher" class="branch-switcher" title="Active branch"></select>
+      <div class="search-wrap">
+        <input id="globalSearch" type="search" placeholder="Search products, customers, invoices..." autocomplete="off">
+        <div id="searchResults" class="search-results hidden"></div>
+      </div>
+      <div class="topbar-actions">
+        <a class="btn btn-primary" href="#/pos">POS Billing</a>
+        <button id="darkToggle" class="icon-btn" title="Toggle dark mode">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+        </button>
+        <button id="profileBtn" class="avatar" title="My profile">A</button>
+      </div>
+    </header>
+
+    <div id="setupBanner" class="banner hidden"></div>
+    <main id="page" class="page"></main>
+  </div>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toasts" class="toasts"></div>
+
+<script src="config.js"></script>
+<script src="supabase.js"></script>
+<!-- app.js must load before the page modules: it exposes window.X / window.H that they capture -->
+<script src="app.js"></script>
+<script src="pages1.js"></script>
+<script src="pages2.js"></script>
+<script src="pages3.js"></script>
+</body>
+</html>
