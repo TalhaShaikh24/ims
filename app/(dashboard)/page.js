@@ -143,7 +143,7 @@ export default function DashboardPage() {
           <Link href="/inventory"><Button size="sm" variant="secondary">Review inventory</Button></Link>
         </div>
       )}
-      <div className="mt-4 flex items-center gap-2 text-[12px] text-slate-400"><Users className="h-3.5 w-3.5" /> All figures on this page are computed live from your Supabase tables — nothing is hardcoded.</div>
+      <div className="mt-4 flex items-center gap-2 text-[12px] text-slate-400"><Users className="h-3.5 w-3.5" /> All figures on this page are computed live from your database — nothing is hardcoded.</div>
     </div>
   );
 }
