@@ -282,10 +282,10 @@ function Topbar({ onMenu, collapsed, onToggleCollapse }) {
       <div className="flex h-14 items-center gap-2.5 px-4 sm:px-5 lg:px-6">
         <button onClick={onMenu} className="flex h-8.5 w-8.5 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden" aria-label="Menu"><Menu className="h-4.5 w-4.5" /></button>
         <button
-          onClick={toggleFullscreen}
-          className="hidden h-8.5 w-8.5 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white sm:flex"
-          title={isFullscreen ? "Exit Fullscreen" : "Fullscreen View"}
-          aria-label={isFullscreen ? "Exit Fullscreen" : "Fullscreen View"}
+          onClick={onToggleCollapse}
+          className="hidden h-8.5 w-8.5 items-center justify-center rounded-lg border border-slate-200/80 bg-white text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:bg-slate-50 hover:text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white lg:flex"
+          title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          aria-label={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
         >
           {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
         </button>
@@ -314,7 +314,7 @@ function Topbar({ onMenu, collapsed, onToggleCollapse }) {
           </Link>
           <button
             onClick={toggleFullscreen}
-            className="flex h-8.5 w-8.5 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+            className="hidden h-8.5 w-8.5 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white sm:flex"
             title={isFullscreen ? "Exit Fullscreen" : "Fullscreen View"}
             aria-label={isFullscreen ? "Exit Fullscreen" : "Fullscreen View"}
           >
@@ -343,46 +343,6 @@ function Topbar({ onMenu, collapsed, onToggleCollapse }) {
                 <button onClick={async () => { setShowProfile(false); await signOut(); }} className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-[13px] font-medium text-red-600 transition hover:bg-red-50 dark:hover:bg-red-500/10"><LogOut className="h-4 w-4" /> Sign Out</button>
               </div>
             )}
-          </div>
-          <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
-            <span className="hidden h-8 items-center gap-1.5 rounded-full border border-slate-200/90 bg-slate-50/80 px-2.5 text-[12px] font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 md:inline-flex">
-              <ShieldCheck className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" /> {role}
-            </span>
-            <Link href="/pos" className="inline-flex h-8.5 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 text-[12.5px] font-semibold text-white shadow-[0_2px_8px_rgba(5,150,105,0.28)] transition hover:bg-emerald-700">
-              <CreditCard className="h-3.5 w-3.5" /> <span className="hidden sm:inline">POS Billing</span>
-            </Link>
-            <button
-              onClick={toggleFullscreen}
-              className="flex h-8.5 w-8.5 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
-              title={isFullscreen ? "Exit Fullscreen" : "Fullscreen View"}
-              aria-label={isFullscreen ? "Exit Fullscreen" : "Fullscreen View"}
-            >
-              {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-            </button>
-            <button onClick={() => setShowNotif(true)} className="relative flex h-8.5 w-8.5 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white" aria-label="Notifications" title="Notifications">
-              <Bell className="h-4 w-4" />
-              {lowItems.length > 0 && <span className="absolute right-0.5 top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9.5px] font-bold text-white shadow-sm">{lowItems.length}</span>}
-            </button>
-            <button onClick={toggleDark} className="flex h-8.5 w-8.5 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white" aria-label="Toggle theme" title={dark ? "Switch to Light Mode" : "Switch to Dark Mode"}>
-              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
-            <div className="relative" onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setShowProfile(false); }}>
-              <button onClick={() => setShowProfile((v) => !v)} className="flex items-center gap-1 rounded-full p-0.5 transition hover:bg-slate-100 dark:hover:bg-slate-800">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 text-xs font-bold text-white shadow-sm">{initial}</span>
-                <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-              </button>
-              {showProfile && (
-                <div className="absolute right-0 top-10 z-50 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_12px_32px_-4px_rgba(15,23,42,0.14)] dark:border-slate-700 dark:bg-slate-800">
-                  <div className="border-b border-slate-100 px-3.5 py-3 dark:border-slate-700">
-                    <p className="truncate text-[13px] font-bold text-slate-900 dark:text-white">{displayName}</p>
-                    <p className="truncate text-[11.5px] text-slate-400">{user?.email || profile?.email || ""}</p>
-                    <span className="mt-1.5 inline-flex rounded-full bg-blue-50 px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wide text-blue-600 dark:bg-blue-500/15 dark:text-blue-300">{role}</span>
-                  </div>
-                  <Link href="/profile" onClick={() => setShowProfile(false)} className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[13px] font-medium text-slate-600 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700/60"><UserRound className="h-4 w-4 text-slate-400" /> My Profile</Link>
-                  <button onClick={async () => { setShowProfile(false); await signOut(); }} className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-[13px] font-medium text-red-600 transition hover:bg-red-50 dark:hover:bg-red-500/10"><LogOut className="h-4 w-4" /> Sign Out</button>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </div>
