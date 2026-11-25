@@ -31,9 +31,9 @@ export default function StockTransfersPage() {
       transformSave={(v, editing) => ({ ...v, transfer_no: editing ? v.transfer_no : (v.transfer_no || docNo("TRF")) })}
       afterSave={afterSave}
       fields={[
-        { key: "from_branch_id", label: "From Branch", type: "select", required: true, optionsFrom: { rows: branchQ.rows } },
-        { key: "to_branch_id", label: "To Branch", type: "select", required: true, optionsFrom: { rows: branchQ.rows } },
-        { key: "product_id", label: "Product", type: "select", required: true, span: 2, optionsFrom: { rows: prodQ.rows } },
+        { key: "from_branch_id", label: "From Branch", type: "select", required: true, optionsFrom: { rows: branchQ.rows }, quickAdd: { label: "Branch", table: "branches", buildPayload: (name) => ({ name, code: docNo("BR") }), onCreated: () => branchQ.reload() } },
+        { key: "to_branch_id", label: "To Branch", type: "select", required: true, optionsFrom: { rows: branchQ.rows }, quickAdd: { label: "Branch", table: "branches", buildPayload: (name) => ({ name, code: docNo("BR") }), onCreated: () => branchQ.reload() } },
+        { key: "product_id", label: "Product", type: "select", required: true, span: 2, optionsFrom: { rows: prodQ.rows }, quickAdd: { label: "Product", table: "products", buildPayload: (name) => ({ name, sku: docNo("SKU"), price: 0, cost: 0, stock: 0, is_active: true }), onCreated: () => prodQ.reload() } },
         { key: "qty", label: "Quantity to Transfer", type: "number", required: true, placeholder: "0" },
         { key: "status", label: "Status", type: "select", options: [{ value: "Pending", label: "Pending" }, { value: "Approved", label: "Approved" }, { value: "In Transit", label: "In Transit" }, { value: "Received", label: "Received" }, { value: "Rejected", label: "Rejected" }] },
         { key: "notes", label: "Notes (optional)", type: "textarea", span: 2, placeholder: "Reason for transfer…" },

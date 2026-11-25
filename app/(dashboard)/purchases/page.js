@@ -6,6 +6,7 @@ import { logAudit, useTable } from "@/lib/data";
 import { docNo, fmtDate, money, n, round2 } from "@/lib/utils";
 import { useBranch } from "@/components/Shell";
 import { Button, Card, DataTable, Field, Input, Modal, PageHeader, SchemaBanner, Select, StatCard, statusBadge, useToast } from "@/components/ui";
+import QuickAddSelect from "@/components/QuickAddSelect";
 
 export default function PurchasesPage() {
   const toast = useToast();
@@ -114,15 +115,35 @@ export default function PurchasesPage() {
       <Modal open={open} onClose={() => setOpen(false)} title={editing ? "Edit Purchase Order" : "New Purchase Order"} sub="Receiving an order adds its items into stock automatically." wide>
         <form onSubmit={save} className="space-y-5">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Supplier" required><Select value={form.supplier_id} onChange={(e) => setForm({ ...form, supplier_id: e.target.value })} required><option value="">Select a supplier…</option>{supQ.rows.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</Select></Field>
+            <QuickAddSelect
+              label="Supplier"
+              required
+              value={form.supplier_id}
+              onChange={(v) => setForm({ ...form, supplier_id: v })}
+              placeholder="Select a supplier…"
+              options={supQ.rows.map((s) => ({ value: s.id, label: s.name }))}
+              entityLabel="Supplier"
+              table="suppliers"
+              onCreated={() => supQ.reload()}
+            />
             <Field label="Order Date"><Input type="date" value={form.order_date} onChange={(e) => setForm({ ...form, order_date: e.target.value })} /></Field>
             <Field label="Status"><Select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}><option>Pending</option><option>Approved</option><option>Received</option><option>Cancelled</option></Select></Field>
-            <Field label="Amount Paid ($)"><Input type="number" step="any" min="0" value={form.amount_paid} onChange={(e) => setForm({ ...form, amount_paid: e.target.value })} placeholder="0.00" /></Field>
+            <Field label="Amount Paid (PKR)"><Input type="number" step="any" min="0" value={form.amount_paid} onChange={(e) => setForm({ ...form, amount_paid: e.target.value })} placeholder="0.00" /></Field>
           </div>
           <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-700">
             <p className="mb-3 text-sm font-semibold">Order Items</p>
             <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-[1fr_84px_104px_auto] sm:items-end">
-              <Field label="Product"><Select value={pick.product_id} onChange={(e) => { const p = prodQ.rows.find((x) => x.id === e.target.value); setPick({ ...pick, product_id: e.target.value, unit_cost: p ? String(n(p.cost)) : pick.unit_cost }); }}><option value="">Select a product…</option>{prodQ.rows.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</Select></Field>
+              <QuickAddSelect
+                label="Product"
+                value={pick.product_id}
+                onChange={(val) => { const p = prodQ.rows.find((x) => x.id === val); setPick({ ...pick, product_id: val, unit_cost: p ? String(n(p.cost)) : pick.unit_cost }); }}
+                placeholder="Select a product…"
+                options={prodQ.rows.map((p) => ({ value: p.id, label: p.name }))}
+                entityLabel="Product"
+                table="products"
+                buildPayload={(name) => ({ name, sku: docNo("SKU"), price: 0, cost: 0, stock: 0, is_active: true })}
+                onCreated={() => prodQ.reload()}
+              />
               <Field label="Qty"><Input type="number" step="any" value={pick.qty} onChange={(e) => setPick({ ...pick, qty: e.target.value })} placeholder="0" /></Field>
               <Field label="Unit Cost"><Input type="number" step="any" value={pick.unit_cost} onChange={(e) => setPick({ ...pick, unit_cost: e.target.value })} placeholder="0.00" /></Field>
               <Button type="button" variant="secondary" onClick={addLine} className="w-full sm:w-auto"><Plus className="h-4 w-4" /> Add</Button>

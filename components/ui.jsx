@@ -65,12 +65,15 @@ export function Select({ children, className, ...props }) {
     </div>
   );
 }
-export function Field({ label, required, children, className }) {
+export function Field({ label, required, action, children, className }) {
   return (
-    <label className={cn("block", className)}>
-      <span className="mb-1 block text-[12.5px] font-semibold text-slate-700 dark:text-slate-200">{label}{required && <span className="text-red-500"> *</span>}</span>
+    <div className={cn("block", className)}>
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <span className="text-[12.5px] font-semibold text-slate-700 dark:text-slate-200">{label}{required && <span className="text-red-500"> *</span>}</span>
+        {action}
+      </div>
       {children}
-    </label>
+    </div>
   );
 }
 
@@ -97,12 +100,12 @@ export function statusBadge(status) {
 export function Modal({ open, onClose, title, sub, children, wide }) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[90] flex items-end justify-center p-0 sm:items-center sm:p-5 no-print">
+    <div className="fixed inset-0 z-[90] flex items-center justify-center p-3 sm:p-5 no-print">
       <div className="backdrop-in absolute inset-0 bg-slate-950/60 backdrop-blur-[3px]" onClick={onClose} />
-      <div className={cn("modal-in relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-xl border border-slate-200/80 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900 sm:rounded-xl", wide ? "max-w-3xl" : "max-w-2xl")}>
-        <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 dark:border-slate-800">
+      <div className={cn("modal-in relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_24px_60px_-12px_rgba(15,23,42,0.28)] dark:border-slate-700 dark:bg-slate-900", wide ? "max-w-3xl" : "max-w-xl")}>
+        <div className="flex items-start justify-between gap-4 border-b border-slate-100 bg-slate-50/70 px-5 py-4 dark:border-slate-800 dark:bg-slate-800/40">
           <div><h2 className="text-[16px] font-bold text-slate-900 dark:text-white">{title}</h2>{sub && <p className="mt-0.5 text-[12.5px] text-slate-500">{sub}</p>}</div>
-          <button onClick={onClose} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800" aria-label="Close"><X className="h-4.5 w-4.5" /></button>
+          <button onClick={onClose} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-200/70 hover:text-slate-700 dark:hover:bg-slate-700 dark:hover:text-white" aria-label="Close"><X className="h-4.5 w-4.5" /></button>
         </div>
         <div className="overflow-y-auto px-5 py-4">{children}</div>
       </div>

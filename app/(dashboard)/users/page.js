@@ -3,8 +3,9 @@ import { useMemo, useState } from "react";
 import { Check, Info, Pencil, Plus, Search } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { logAudit, useTable } from "@/lib/data";
-import { fmtDate, USER_ROLES } from "@/lib/utils";
+import { docNo, fmtDate, USER_ROLES } from "@/lib/utils";
 import { Badge, Button, Card, DataTable, Field, Input, Modal, PageHeader, SchemaBanner, Select, useToast } from "@/components/ui";
+import QuickAddSelect from "@/components/QuickAddSelect";
 import { cn } from "@/lib/cn";
 
 function Toggle({ value, onChange }) {
@@ -95,12 +96,17 @@ export default function UsersPage() {
               {USER_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
             </Select>
           </Field>
-          <Field label="Branch">
-            <Select value={form.branch_id} onChange={(e) => setForm({ ...form, branch_id: e.target.value })}>
-              <option value="">No branch assigned</option>
-              {branchQ.rows.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-            </Select>
-          </Field>
+          <QuickAddSelect
+            label="Branch"
+            value={form.branch_id}
+            onChange={(v) => setForm({ ...form, branch_id: v })}
+            placeholder="No branch assigned"
+            options={branchQ.rows.map((b) => ({ value: b.id, label: b.name }))}
+            entityLabel="Branch"
+            table="branches"
+            buildPayload={(name) => ({ name, code: docNo("BR") })}
+            onCreated={() => branchQ.reload()}
+          />
           <div className="flex items-center justify-between gap-4 rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-4 py-3 dark:border-slate-600 dark:bg-slate-700/40 sm:col-span-2">
             <div><p className="text-[13px] font-semibold text-[#1F2937] dark:text-slate-100">Active</p><p className="text-xs text-slate-400">Inactive users keep their history but lose access.</p></div>
             <Toggle value={form.is_active} onChange={(v) => setForm({ ...form, is_active: v })} />

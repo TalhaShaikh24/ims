@@ -4,6 +4,7 @@ import { Check, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { logAudit, useTable } from "@/lib/data";
 import { Button, Card, DataTable, Field, Input, Modal, PageHeader, SchemaBanner, Select, Textarea, useToast } from "./ui";
+import QuickAddSelect from "./QuickAddSelect";
 
 /**
  * Config-driven CRUD page.
@@ -89,6 +90,22 @@ export default function EntityManager({ title, sub, table, entityName, columns, 
       <Modal open={open} onClose={() => setOpen(false)} title={`${editing ? "Edit" : "Add"} ${entityName}`} sub={editing ? "Update the details below." : `Enter details to add a new ${entityName.toLowerCase()}.`}>
         <form onSubmit={save} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {fields.map((f) => (
+            f.type === "select" && f.quickAdd ? (
+              <QuickAddSelect
+                key={f.key}
+                label={f.label}
+                required={f.required}
+                className={f.span === 2 ? "sm:col-span-2" : ""}
+                value={form[f.key] ?? ""}
+                onChange={(v) => setForm({ ...form, [f.key]: v })}
+                placeholder={f.placeholder || "Select…"}
+                options={f.optionsFrom ? f.optionsFrom.rows.map((o) => ({ value: o[f.optionsFrom.value || "id"], label: o[f.optionsFrom.label || "name"] })) : (f.options || [])}
+                entityLabel={f.quickAdd.label}
+                table={f.quickAdd.table}
+                buildPayload={f.quickAdd.buildPayload}
+                onCreated={f.quickAdd.onCreated}
+              />
+            ) : (
             <Field key={f.key} label={f.label} required={f.required} className={f.span === 2 ? "sm:col-span-2" : ""}>
               {f.type === "select" ? (
                 <Select value={form[f.key] ?? ""} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} required={f.required}>
@@ -103,6 +120,7 @@ export default function EntityManager({ title, sub, table, entityName, columns, 
                 <Input type={f.type || "text"} step={f.type === "number" ? "any" : undefined} value={form[f.key] ?? ""} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} placeholder={f.placeholder} required={f.required} />
               )}
             </Field>
+            )
           ))}
           <div className="mt-1 flex justify-end gap-3 border-t border-[#F1F5F9] pt-4 dark:border-slate-700 sm:col-span-2">
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>

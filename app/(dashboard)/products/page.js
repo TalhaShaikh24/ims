@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { logAudit, useTable } from "@/lib/data";
 import { money, n } from "@/lib/utils";
 import { Badge, Button, Card, DataTable, Field, Input, Modal, PageHeader, SchemaBanner, Select, StatCard, Textarea, useToast } from "@/components/ui";
+import QuickAddSelect from "@/components/QuickAddSelect";
 
 export default function ProductsPage() {
   const toast = useToast();
@@ -81,10 +82,28 @@ export default function ProductsPage() {
         <form onSubmit={save} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Product Name" required><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Wireless Earbuds" required /></Field>
           <Field label="SKU" required><Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} placeholder="e.g. EL-001" required /></Field>
-          <Field label="Category"><Select value={form.category_id} onChange={(e) => setForm({ ...form, category_id: e.target.value })}><option value="">Select category…</option>{catQ.rows.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select></Field>
-          <Field label="Brand"><Select value={form.brand_id} onChange={(e) => setForm({ ...form, brand_id: e.target.value })}><option value="">Select brand…</option>{brandQ.rows.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</Select></Field>
-          <Field label="Sale Price ($)" required><Input type="number" step="any" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="0.00" required /></Field>
-          <Field label="Cost Price ($)"><Input type="number" step="any" min="0" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} placeholder="0.00" /></Field>
+          <QuickAddSelect
+            label="Category"
+            value={form.category_id}
+            onChange={(v) => setForm({ ...form, category_id: v })}
+            placeholder="Select category…"
+            options={catQ.rows.map((c) => ({ value: c.id, label: c.name }))}
+            entityLabel="Category"
+            table="categories"
+            onCreated={() => catQ.reload()}
+          />
+          <QuickAddSelect
+            label="Brand"
+            value={form.brand_id}
+            onChange={(v) => setForm({ ...form, brand_id: v })}
+            placeholder="Select brand…"
+            options={brandQ.rows.map((b) => ({ value: b.id, label: b.name }))}
+            entityLabel="Brand"
+            table="brands"
+            onCreated={() => brandQ.reload()}
+          />
+          <Field label="Sale Price (PKR)" required><Input type="number" step="any" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="0.00" required /></Field>
+          <Field label="Cost Price (PKR)"><Input type="number" step="any" min="0" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} placeholder="0.00" /></Field>
           <Field label="Stock Quantity"><Input type="number" step="any" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} placeholder="0" /></Field>
           <Field label="Low Stock Alert At"><Input type="number" step="any" value={form.low_stock_at} onChange={(e) => setForm({ ...form, low_stock_at: e.target.value })} placeholder="5" /></Field>
           <Field label="Image URL (optional)" className="sm:col-span-2"><Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://…" /></Field>
