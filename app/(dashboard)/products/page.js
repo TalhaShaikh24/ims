@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { AlertTriangle, Boxes, Package, Pencil, Plus, Search, Trash2, TrendingUp } from "lucide-react";
+import { AlertTriangle, Boxes, Package, Pencil, Plus, Search, Trash2, TrendingUp, Wand2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { logAudit, useTable } from "@/lib/data";
 import { money, n } from "@/lib/utils";
@@ -27,7 +27,12 @@ export default function ProductsPage() {
   const margins = prodQ.rows.filter((p) => n(p.price) > 0).map((p) => ((n(p.price) - n(p.cost)) / n(p.price)) * 100);
   const avgMargin = margins.length ? margins.reduce((a, b) => a + b, 0) / margins.length : 0;
 
-  function openAdd() { setEditing(null); setForm({ name: "", sku: "", category_id: "", brand_id: "", price: "", cost: "", stock: "", low_stock_at: 5, description: "", image_url: "" }); setOpen(true); }
+  function makeSku(name = "") {
+    const clean = name.trim().replace(/[^a-zA-Z0-9\s]/g, "").split(/\s+/).filter(Boolean);
+    const prefix = clean.length >= 2 ? (clean[0].slice(0, 2) + clean[1].slice(0, 2)).toUpperCase() : clean.length === 1 ? clean[0].slice(0, 4).toUpperCase() : "PRD";
+    return `${prefix}-${Math.floor(1000 + Math.random() * 9000)}`;
+  }
+  function openAdd() { setEditing(null); setForm({ name: "", sku: makeSku(""), category_id: "", brand_id: "", price: "", cost: "", stock: "", low_stock_at: 5, description: "", image_url: "" }); setOpen(true); }
   function openEdit(p) { setEditing(p); setForm({ name: p.name, sku: p.sku, category_id: p.category_id || "", brand_id: p.brand_id || "", price: p.price, cost: p.cost, stock: p.stock, low_stock_at: p.low_stock_at, description: p.description || "", image_url: p.image_url || "" }); setOpen(true); }
 
   async function save(e) {
@@ -81,7 +86,22 @@ export default function ProductsPage() {
       <Modal open={open} onClose={() => setOpen(false)} title={editing ? "Edit Product" : "Add New Product"} sub="Product details for your catalog." wide>
         <form onSubmit={save} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Product Name" required><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Wireless Earbuds" required /></Field>
-          <Field label="SKU" required><Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} placeholder="e.g. EL-001" required /></Field>
+          <Field
+            label="SKU"
+            required
+            action={
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, sku: makeSku(f.name) }))}
+                className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-blue-600 transition hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-500/10"
+                title="Auto-generate SKU from product name or random"
+              >
+                <Wand2 className="h-3 w-3" /> Auto
+              </button>
+            }
+          >
+            <Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} placeholder="e.g. EL-001" required />
+          </Field>
           <QuickAddSelect
             label="Category"
             value={form.category_id}
