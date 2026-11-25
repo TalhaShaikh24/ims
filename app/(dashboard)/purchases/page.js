@@ -80,8 +80,18 @@ export default function PurchasesPage() {
     setSaving(false); setOpen(false); toast(`Purchase order ${po.po_no} saved.`); poQ.reload();
   }
   async function remove(p) {
-    if (!confirm(`Delete purchase order ${p.po_no}?`)) return;
+    if (!confirm(`Delete purchase order ${p.po_no}?${p.status === "Received" ? " Received stock will be reversed." : ""}`)) return;
     const sb = supabase(); if (!sb) return;
+    if (p.status === "Received") {
+      const { data: items } = await sb.from("purchase_items").select("*").eq("purchase_id", p.id);
+      for (const i of items || []) {
+        if (!i.product_id) continue;
+        const { data: prod } = await sb.from("products").select("stock").eq("id", i.product_id).single();
+        if (prod) await sb.from("products").update({ stock: Math.max(0, n(prod.stock) - n(i.qty)) }).eq("id", i.product_id);
+        await sb.from("stock_movements").insert({ product_id: i.product_id, branch_id: p.branch_id, type: "Purchase Void", qty: -n(i.qty), ref: p.po_no });
+      }
+    }
+    await sb.from("purchase_items").delete().eq("purchase_id", p.id);
     const { error } = await sb.from("purchases").delete().eq("id", p.id);
     if (error) return toast(error.message, "error");
     await logAudit("Delete", `Purchase Order: ${p.po_no}`); toast("Purchase order deleted."); poQ.reload();

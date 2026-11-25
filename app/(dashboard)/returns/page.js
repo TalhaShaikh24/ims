@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { CircleDollarSign, Plus, RotateCcw, Undo2 } from "lucide-react";
+import { CircleDollarSign, Plus, RotateCcw, Trash2, Undo2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { logAudit, useTable } from "@/lib/data";
 import { docNo, fmtDate, money, n } from "@/lib/utils";
@@ -49,6 +49,16 @@ export default function ReturnsPage() {
     retQ.reload();
   }
 
+  async function remove(r) {
+    if (!confirm(`Delete return ${r.return_no}?`)) return;
+    const sb = supabase(); if (!sb) return;
+    const { error } = await sb.from("sales_returns").delete().eq("id", r.id);
+    if (error) return toast(error.message, "error");
+    await logAudit("Delete", `Sales Return: ${r.return_no}`);
+    toast(`Return ${r.return_no} deleted.`);
+    retQ.reload();
+  }
+
   return (
     <div className="page-in">
       <PageHeader title="Sales Returns" sub="Process product returns and issue refunds — always against a real invoice">
@@ -70,6 +80,7 @@ export default function ReturnsPage() {
           { label: "Reason", render: (r) => r.reason || "—" },
           { label: "Status", render: (r) => statusBadge(r.status) },
           { label: "Amount", align: "right", render: (r) => money(r.amount) },
+          { label: "Actions", align: "right", render: (r) => <button onClick={() => remove(r)} className="inline-flex rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-slate-800" aria-label="Delete return"><Trash2 className="h-4 w-4" /></button> },
         ]} />
       </Card>
       <Modal open={open} onClose={() => setOpen(false)} title="Create Sales Return" sub="Only invoices that exist in Sales can be returned — stock is restored automatically.">

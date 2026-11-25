@@ -1,13 +1,15 @@
 "use client";
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { CircleDollarSign, Download, Eye, FileText, Percent, ShoppingCart } from "lucide-react";
-import { useTable } from "@/lib/data";
+import { CircleDollarSign, Download, Eye, FileText, Percent, ShoppingCart, Trash2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { logAudit, useTable } from "@/lib/data";
 import { downloadCSV, fmtDate, money, n } from "@/lib/utils";
 import { useBranch } from "@/components/Shell";
-import { Button, Card, DataTable, Input, PageHeader, SchemaBanner, Select, StatCard, statusBadge } from "@/components/ui";
+import { Button, Card, DataTable, Input, PageHeader, SchemaBanner, Select, StatCard, statusBadge, useToast } from "@/components/ui";
 
 export default function SalesPage() {
+  const toast = useToast();
   const { branchId } = useBranch();
   const salesQ = useTable("sales", (q) => q.order("created_at", { ascending: false }));
   const itemsQ = useTable("sale_items");
@@ -34,6 +36,24 @@ export default function SalesPage() {
 
   function exportCsv() {
     downloadCSV("sales.csv", [["Invoice", "Date", "Customer", "Items", "Payment", "Status", "Total"], ...rows.map((s) => [s.invoice_no, fmtDate(s.created_at), custName.get(s.customer_id) || "Walk-in Customer", itemCount.get(s.id) || 0, s.payment_method, s.status, n(s.total).toFixed(2)])]);
+  }
+
+  async function remove(s) {
+    if (!confirm(`Delete invoice ${s.invoice_no}? Sold stock will be restored automatically.`)) return;
+    const sb = supabase(); if (!sb) return;
+    const { data: items } = await sb.from("sale_items").select("*").eq("sale_id", s.id);
+    for (const i of items || []) {
+      if (!i.product_id) continue;
+      const { data: p } = await sb.from("products").select("stock").eq("id", i.product_id).single();
+      if (p) await sb.from("products").update({ stock: n(p.stock) + n(i.qty) }).eq("id", i.product_id);
+      await sb.from("stock_movements").insert({ product_id: i.product_id, branch_id: s.branch_id, type: "Sale Void", qty: n(i.qty), ref: s.invoice_no });
+    }
+    await sb.from("sale_items").delete().eq("sale_id", s.id);
+    const { error } = await sb.from("sales").delete().eq("id", s.id);
+    if (error) return toast(error.message, "error");
+    await logAudit("Delete", `Invoice voided & deleted: ${s.invoice_no}`);
+    toast(`Invoice ${s.invoice_no} deleted and stock restored.`);
+    salesQ.reload(); itemsQ.reload();
   }
 
   return (
@@ -63,7 +83,12 @@ export default function SalesPage() {
           { label: "Payment", render: (s) => s.payment_method },
           { label: "Status", render: (s) => statusBadge(s.status) },
           { label: "Total", align: "right", render: (s) => money(s.total) },
-          { label: "", align: "right", render: (s) => <Link href={`/sales/${s.id}`} className="inline-flex rounded-lg p-2 text-slate-400 transition hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-800" aria-label="View invoice"><Eye className="h-4 w-4" /></Link> },
+          { label: "Actions", align: "right", render: (s) => (
+            <div className="flex justify-end gap-1">
+              <Link href={`/sales/${s.id}`} className="inline-flex rounded-lg p-1.5 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-slate-800" aria-label="View invoice"><Eye className="h-4 w-4" /></Link>
+              <button onClick={() => remove(s)} className="inline-flex rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-slate-800" aria-label="Delete invoice"><Trash2 className="h-4 w-4" /></button>
+            </div>
+          ) },
         ]} />
       </Card>
     </div>

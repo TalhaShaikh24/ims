@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { Check, Info, Pencil, Plus, Search } from "lucide-react";
+import { Check, Info, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { logAudit, useTable } from "@/lib/data";
 import { docNo, fmtDate, USER_ROLES } from "@/lib/utils";
@@ -55,6 +55,16 @@ export default function UsersPage() {
     setOpen(false); profQ.reload();
   }
 
+  async function remove(p) {
+    if (!confirm(`Delete user profile ${p.full_name || p.email}?`)) return;
+    const sb = supabase(); if (!sb) return;
+    const { error } = await sb.from("profiles").delete().eq("id", p.id);
+    if (error) return toast(error.message, "error");
+    await logAudit("Delete", `User profile: ${p.full_name || p.email}`);
+    toast("User profile deleted.");
+    profQ.reload();
+  }
+
   return (
     <div className="page-in">
       <PageHeader title="Users & Access" sub="Manage team profiles, roles and access status">
@@ -82,7 +92,10 @@ export default function UsersPage() {
           { label: "Status", render: (p) => p.is_active !== false ? <Badge tone="green">Active</Badge> : <Badge tone="red">Inactive</Badge> },
           { label: "Created", render: (p) => <span className="text-slate-500">{fmtDate(p.created_at)}</span> },
           { label: "Actions", align: "right", render: (p) => (
-            <button onClick={() => openEdit(p)} className="rounded-lg p-2 text-slate-400 transition hover:bg-[#EEF2FF] hover:text-[#4F46E5] dark:hover:bg-slate-700" aria-label="Edit user"><Pencil className="h-4 w-4" /></button>
+            <div className="flex justify-end gap-1">
+              <button onClick={() => openEdit(p)} className="rounded-lg p-1.5 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-slate-800" aria-label="Edit user"><Pencil className="h-4 w-4" /></button>
+              <button onClick={() => remove(p)} className="rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-slate-800" aria-label="Delete user"><Trash2 className="h-4 w-4" /></button>
+            </div>
           ) },
         ]} />
       </Card>
