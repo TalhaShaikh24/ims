@@ -52,6 +52,7 @@ body { @apply bg-[#F1F5F9] text-slate-700 antialiased dark:bg-[#090D16] dark:tex
 @media print {
   @page { size: A4 portrait; margin: 10mm; }
   @page quarter { size: A6 landscape; margin: 4mm; }
+  @page half { size: A5 landscape; margin: 5mm; }
   body * { visibility: hidden; }
   .print-area, .print-area * { visibility: visible; }
   .print-area { position: absolute; inset: 0; padding: 12px; background: #ffffff !important; color: #0f172a !important; box-shadow: none !important; border: none !important; }
@@ -76,6 +77,14 @@ body { @apply bg-[#F1F5F9] text-slate-700 antialiased dark:bg-[#090D16] dark:tex
     line-height: 1.3 !important;
   }
   .print-area.print-a4-portrait {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .print-area.print-half-a4 {
+    page: half;
     position: static !important;
     width: 100% !important;
     max-width: 100% !important;
