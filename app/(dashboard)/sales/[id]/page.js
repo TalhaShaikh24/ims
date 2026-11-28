@@ -111,7 +111,7 @@ export default function InvoicePage({ params }) {
         </div>
       </div>
 
-      <Card className="print-area print-half-a4 mx-auto max-w-3xl p-4 text-slate-800 dark:text-slate-100 print:p-2 print:text-slate-800">
+      <Card className="print-area print-half-a4 mx-auto max-w-3xl p-4 text-slate-800 dark:text-slate-100 print:rounded-none print:bg-white print:p-2 print:text-slate-800">
         {/* Minimal IMS Header — Left business info, Right pinned invoice badge & date */}
         <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-1.5 dark:border-slate-800 print:border-slate-400 print:pb-1">
           <div className="min-w-0 flex-1">
@@ -140,8 +140,8 @@ export default function InvoicePage({ params }) {
         </div>
 
         {/* Ultra-Compact Single-Line Items Table with Soft Slate Header */}
-        <div className="mt-1 overflow-x-auto print:mt-0.5">
-          <table className="w-full border-collapse border border-slate-300 text-[11.5px] dark:border-slate-700 print:border-slate-400 print:text-[9px]">
+        <div className="mt-1 overflow-x-auto print:mt-0.5 print:overflow-visible">
+          <table className="w-full border-collapse rounded-none border border-slate-300 text-[11.5px] dark:border-slate-700 print:rounded-none print:border-slate-400 print:text-[9px]">
             <thead>
               <tr className="border-b border-slate-300 bg-slate-200/80 text-[10px] font-bold uppercase tracking-wider text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 print:border-slate-400 print:bg-slate-200 print:text-[8px] print:text-slate-900">
                 <th className="w-8 whitespace-nowrap border-r border-slate-300 px-1.5 py-1 text-center dark:border-slate-700 print:border-slate-400 print:py-0.5">S.No</th>
