@@ -74,6 +74,7 @@ export default function PosPage() {
     });
   }
   const setQty = (id, qty) => setCart((c) => qty <= 0 ? c.filter((i) => i.id !== id) : c.map((i) => i.id === id ? { ...i, qty: Math.min(qty, i.stock) } : i));
+  const setItemPrice = (id, price) => setCart((c) => c.map((i) => i.id === id ? { ...i, price } : i));
   const setItemDisc = (id, patch) => setCart((c) => c.map((i) => i.id === id ? { ...i, ...patch } : i));
 
   function hold() { localStorage.setItem("xona_hold", JSON.stringify(cart)); setHeld(cart); setCart([]); toast("Sale held — resume it any time."); }
@@ -99,7 +100,7 @@ export default function PosPage() {
       cashier_name: localStorage.getItem("xona_profile_name") || "Admin",
     }).select().single();
     if (error) { setSaving(false); return toast(error.message, "error"); }
-    const items = cart.map((i) => ({ sale_id: sale.id, product_id: i.id, product_name: i.name, price: i.price, cost: i.cost, qty: i.qty, line_total: itemCalc(i).net }));
+    const items = cart.map((i) => ({ sale_id: sale.id, product_id: i.id, product_name: i.name, price: n(i.price), cost: i.cost, qty: i.qty, line_total: itemCalc(i).net }));
     const { error: iErr } = await sb.from("sale_items").insert(items);
     if (iErr) { setSaving(false); return toast(iErr.message, "error"); }
     for (const i of cart) {
@@ -177,7 +178,7 @@ export default function PosPage() {
                         <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{p.name}</p>
                         <p className={cn("mt-0.5 text-xs", out || low ? "font-semibold text-[#DC2626]" : "text-slate-400")}>{catName.get(p.category_id) || "—"} • Stock: {n(p.stock)}{out ? " (Out of stock)" : ""}</p>
                         <div className="mt-3 flex items-center justify-between">
-                          <span className="tnum text-base font-bold text-[#4F46E5]">{money(p.price)}</span>
+                          <span className="tnum text-base font-bold text-[#4F46E5]">{n(p.price) > 0 ? money(p.price) : <span className="text-xs font-semibold text-slate-400">Set at POS</span>}</span>
                           <button onClick={() => add(p)} disabled={out} aria-label={`Add ${p.name} to cart`} className="flex h-8 w-8 items-center justify-center rounded-full bg-[#4F46E5] text-white shadow-sm transition hover:bg-[#4338CA] disabled:opacity-40"><Plus className="h-4 w-4" /></button>
                         </div>
                       </div>
@@ -201,7 +202,13 @@ export default function PosPage() {
               return (
                 <div key={i.id} className="border-b border-slate-100 py-2.5 last:border-0 dark:border-slate-800">
                   <div className="flex items-center gap-2.5">
-                    <div className="min-w-0 flex-1"><p className="truncate text-[13px] font-semibold text-slate-800 dark:text-slate-100">{i.name}</p><p className="tnum text-[11.5px] text-slate-400">{money(i.price)} each</p></div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[13px] font-semibold text-slate-800 dark:text-slate-100">{i.name}</p>
+                      <div className="mt-0.5 flex items-center gap-1">
+                        <span className="text-[11px] text-slate-400">Rate:</span>
+                        <Input type="number" min="0" step="any" value={i.price} onChange={(e) => setItemPrice(i.id, e.target.value)} placeholder="0" className="!h-6 !w-20 px-1.5 text-right text-[11.5px] font-semibold" aria-label={`Rate for ${i.name}`} />
+                      </div>
+                    </div>
                     <div className="flex shrink-0 items-center gap-1">
                       <button onClick={() => setQty(i.id, i.qty - 1)} className="flex h-6.5 w-6.5 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700"><Minus className="h-3 w-3" /></button>
                       <span className="tnum w-5 text-center text-[12.5px] font-semibold">{i.qty}</span>

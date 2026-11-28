@@ -75,7 +75,7 @@ export default function ProductsPage() {
           { label: "Product", render: (p) => (<div className="flex items-center gap-3">{p.image_url ? <img src={p.image_url} alt="" className="h-9 w-9 rounded-lg object-cover" /> : <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 font-bold text-indigo-400 dark:bg-indigo-500/10">{p.name.charAt(0)}</span>}<div><p className="font-medium text-slate-800 dark:text-slate-100">{p.name}</p><p className="text-xs text-slate-400">{brandName.get(p.brand_id) || ""}</p></div></div>) },
           { label: "SKU", render: (p) => <span className="font-mono text-[13px]">{p.sku}</span> },
           { label: "Category", render: (p) => catName.get(p.category_id) || "—" },
-          { label: "Price", align: "right", render: (p) => money(p.price) },
+          { label: "Price", align: "right", render: (p) => n(p.price) > 0 ? money(p.price) : <span className="text-xs text-slate-400">Optional</span> },
           { label: "Cost", align: "right", render: (p) => money(p.cost) },
           { label: "Stock", align: "center", render: (p) => n(p.stock) },
           { label: "Margin", align: "right", render: (p) => n(p.price) > 0 ? (((n(p.price) - n(p.cost)) / n(p.price)) * 100).toFixed(0) + "%" : "—" },
@@ -122,7 +122,7 @@ export default function ProductsPage() {
             table="brands"
             onCreated={() => brandQ.reload()}
           />
-          <Field label="Sale Price (PKR)" required><Input type="number" step="any" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="0.00" required /></Field>
+          <Field label="Sale Price (PKR, optional)"><Input type="number" step="any" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="Optional — set at POS" /></Field>
           <Field label="Cost Price (PKR)"><Input type="number" step="any" min="0" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} placeholder="0.00" /></Field>
           <Field label="Stock Quantity"><Input type="number" step="any" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} placeholder="0" /></Field>
           <Field label="Low Stock Alert At"><Input type="number" step="any" value={form.low_stock_at} onChange={(e) => setForm({ ...form, low_stock_at: e.target.value })} placeholder="5" /></Field>
