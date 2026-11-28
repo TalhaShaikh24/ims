@@ -11,7 +11,7 @@ import QuickAddSelect from "./QuickAddSelect";
  * fields: [{ key, label, type: text|number|email|date|select|textarea, required, options, optionsFrom:{rows,label,value}, span }]
  * columns: DataTable columns. formDefaults: object. transformSave(values) optional.
  */
-export default function EntityManager({ title, sub, table, entityName, columns, fields, formDefaults = {}, searchKeys = [], transformSave, afterSave, filterRows, addLabel }) {
+export default function EntityManager({ title, sub, table, entityName, columns, fields, formDefaults = {}, searchKeys = [], transformSave, afterSave, filterRows, addLabel, rowActions }) {
   const toast = useToast();
   const { rows, loading, error, reload, schemaError } = useTable(table, (q) => q.order("created_at", { ascending: false }));
   const [search, setSearch] = useState("");
@@ -68,7 +68,8 @@ export default function EntityManager({ title, sub, table, entityName, columns, 
   const cols = [...columns, {
     label: "Actions", align: "right",
     render: (r) => (
-      <div className="flex justify-end gap-1">
+      <div className="flex items-center justify-end gap-1">
+        {rowActions && rowActions(r)}
         <button onClick={() => openEdit(r)} className="rounded-lg p-1.5 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-slate-800" aria-label="Edit"><Pencil className="h-4 w-4" /></button>
         <button onClick={() => remove(r)} className="rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-slate-800" aria-label="Delete"><Trash2 className="h-4 w-4" /></button>
       </div>

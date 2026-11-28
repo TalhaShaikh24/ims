@@ -5,60 +5,70 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowLeftRight, BarChart3, Bell, Boxes, Building2, Check, ChevronDown, ClipboardList, Cloud,
-  CreditCard, FileText, History, KeyRound, LayoutDashboard, LogOut, Maximize2, Menu, Minimize2,
+  CreditCard, FileText, History, KeyRound, Landmark, LayoutDashboard, LogOut, Maximize2, Menu, Minimize2,
   Moon, Package, PanelLeftClose, PanelLeftOpen, Receipt, RotateCcw, Search, Settings, ShieldCheck,
   ShoppingCart, Store, Sun, Tags, Truck, Undo2, UserRound, Users, Wallet, X,
 } from "lucide-react";
 import { getConfig, supabase } from "@/lib/supabase";
-import { fetchProfile } from "@/lib/data";
+import { fetchProfile, getSetting } from "@/lib/data";
 import { cn } from "@/lib/cn";
 import { ToastProvider } from "./ui";
 
 export const BranchCtx = createContext({ branches: [], branchId: "all", setBranchId: () => { }, branch: null });
 export const useBranch = () => useContext(BranchCtx);
-export const AuthCtx = createContext({ user: null, profile: null, configured: false, signOut: async () => { } });
+export const AuthCtx = createContext({ user: null, profile: null, configured: false, can: () => true, signOut: async () => { } });
 export const useAuth = () => useContext(AuthCtx);
+
+const DEFAULT_ROLE_PERMS = {
+  "Super Admin": ["Access POS Terminal", "Apply Discounts", "Process Refunds", "Manage Products", "Manage Inventory", "Manage Purchases", "Manage Cash Register", "View P&L Reports", "Manage Staff"],
+  "Organization Admin": ["Access POS Terminal", "Apply Discounts", "Process Refunds", "Manage Products", "Manage Inventory", "Manage Purchases", "Manage Cash Register", "View P&L Reports", "Manage Staff"],
+  "Manager": ["Access POS Terminal", "Apply Discounts", "Process Refunds", "Manage Products", "Manage Inventory", "Manage Purchases", "Manage Cash Register"],
+  "Cashier": ["Access POS Terminal", "Apply Discounts", "Process Refunds", "Manage Cash Register"],
+  "Inventory Manager": ["Manage Products", "Manage Inventory", "Manage Purchases"],
+  "Accountant": ["Manage Purchases", "Manage Cash Register", "View P&L Reports"],
+};
 
 const NAV = [
   {
     group: "Operations", items: [
       { href: "/", label: "Dashboard", icon: LayoutDashboard },
-      { href: "/pos", label: "POS Billing", icon: ShoppingCart },
-      { href: "/sales", label: "Sales Invoices", icon: FileText },
-      { href: "/returns", label: "Sales Returns", icon: Undo2 },
+      { href: "/pos", label: "POS Billing", icon: ShoppingCart, perm: "Access POS Terminal" },
+      { href: "/cash-register", label: "Cash Register", icon: Landmark, perm: "Manage Cash Register" },
+      { href: "/sales", label: "Sales Invoices", icon: FileText, perm: "Access POS Terminal" },
+      { href: "/returns", label: "Sales Returns", icon: Undo2, perm: "Process Refunds" },
     ]
   },
   {
     group: "Catalog & Inventory", items: [
-      { href: "/products", label: "Products", icon: Package },
-      { href: "/categories", label: "Categories & Brands", icon: Tags },
-      { href: "/inventory", label: "Stock & Inventory", icon: Boxes },
-      { href: "/stock-transfers", label: "Stock Transfers", icon: ArrowLeftRight },
+      { href: "/products", label: "Products", icon: Package, perm: "Manage Products" },
+      { href: "/categories", label: "Categories & Brands", icon: Tags, perm: "Manage Products" },
+      { href: "/inventory", label: "Stock & Inventory", icon: Boxes, perm: "Manage Inventory" },
+      { href: "/stock-transfers", label: "Stock Transfers", icon: ArrowLeftRight, perm: "Manage Inventory" },
     ]
   },
   {
     group: "Procurement", items: [
-      { href: "/purchases", label: "Purchases (PO)", icon: ClipboardList },
-      { href: "/purchase-returns", label: "Purchase Returns", icon: RotateCcw },
-      { href: "/suppliers", label: "Suppliers & Dues", icon: Truck },
+      { href: "/purchases", label: "Purchases (PO)", icon: ClipboardList, perm: "Manage Purchases" },
+      { href: "/purchase-returns", label: "Purchase Returns", icon: RotateCcw, perm: "Manage Purchases" },
+      { href: "/suppliers", label: "Suppliers & Dues", icon: Truck, perm: "Manage Purchases" },
     ]
   },
   {
     group: "CRM & Accounts", items: [
-      { href: "/customers", label: "Customers & Credit", icon: Users },
-      { href: "/expenses", label: "Expenses", icon: Receipt },
-      { href: "/financials", label: "Financials & P&L", icon: Wallet },
+      { href: "/customers", label: "Customers & Credit", icon: Users, perm: "Access POS Terminal" },
+      { href: "/expenses", label: "Expenses", icon: Receipt, perm: "Manage Cash Register" },
+      { href: "/financials", label: "Financials & P&L", icon: Wallet, perm: "View P&L Reports" },
     ]
   },
   {
     group: "Insights & Admin", items: [
-      { href: "/reports", label: "Reports & Analytics", icon: BarChart3 },
-      { href: "/employees", label: "Employees & Staff", icon: Users },
-      { href: "/users", label: "Users & Access", icon: KeyRound },
-      { href: "/roles", label: "Roles & Permissions", icon: ShieldCheck },
-      { href: "/branches", label: "Branch Locations", icon: Building2 },
-      { href: "/audit-logs", label: "Audit Logs", icon: History },
-      { href: "/settings", label: "Settings & Branding", icon: Settings },
+      { href: "/reports", label: "Reports & Analytics", icon: BarChart3, perm: "View P&L Reports" },
+      { href: "/employees", label: "Employees & Staff", icon: Users, perm: "Manage Staff" },
+      { href: "/users", label: "Users & Access", icon: KeyRound, perm: "Manage Staff" },
+      { href: "/roles", label: "Roles & Permissions", icon: ShieldCheck, perm: "Manage Staff" },
+      { href: "/branches", label: "Branch Locations", icon: Building2, perm: "Manage Staff" },
+      { href: "/audit-logs", label: "Audit Logs", icon: History, perm: "Manage Staff" },
+      { href: "/settings", label: "Settings & Branding", icon: Settings, perm: "Manage Staff" },
     ]
   },
 ];
@@ -81,6 +91,8 @@ export function LogoLockup({ light, collapsed }) {
 
 function Sidebar({ onNavigate, collapsed = false }) {
   const pathname = usePathname();
+  const { can } = useAuth();
+  const visibleNav = NAV.map((g) => ({ ...g, items: g.items.filter((it) => !it.perm || can(it.perm)) })).filter((g) => g.items.length > 0);
   return (
     <div className="flex h-full flex-col border-r border-slate-800/90 bg-[#0F172A] text-slate-300 shadow-[4px_0_24px_-4px_rgba(15,23,42,0.22)] dark:bg-[#0B101B]">
       <div className={cn("flex h-14 shrink-0 items-center border-b border-white/[0.06]", collapsed ? "justify-center px-2" : "px-4")}>
@@ -89,7 +101,7 @@ function Sidebar({ onNavigate, collapsed = false }) {
         </Link>
       </div>
       <nav className={cn("sidebar-scroll flex-1 overflow-y-auto py-3", collapsed ? "px-2" : "px-2.5")}>
-        {NAV.map((g, gi) => (
+        {visibleNav.map((g, gi) => (
           <div key={g.group}>
             {collapsed ? (
               gi > 0 && <div className="mx-2 my-2.5 h-px bg-white/[0.08]" />
@@ -364,11 +376,20 @@ export default function Shell({ children }) {
   const [authChecked, setAuthChecked] = useState(false);
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [roleMatrix, setRoleMatrix] = useState(DEFAULT_ROLE_PERMS);
 
   useEffect(() => {
     const saved = localStorage.getItem("xona_sidebar_collapsed");
     if (saved === "true") setCollapsed(true);
+    getSetting("roles", null).then((v) => { if (v && typeof v === "object") setRoleMatrix({ ...DEFAULT_ROLE_PERMS, ...v }); });
   }, []);
+
+  const can = useCallback((perm) => {
+    if (!perm) return true;
+    const role = profile?.role_name || "Super Admin";
+    if (role === "Super Admin" || role === "Organization Admin") return true;
+    return (roleMatrix[role] || []).includes(perm);
+  }, [profile, roleMatrix]);
 
   const toggleCollapse = () => {
     setCollapsed((prev) => {
@@ -452,7 +473,7 @@ export default function Shell({ children }) {
 
   return (
     <ToastProvider>
-      <AuthCtx.Provider value={{ user, profile, configured, signOut }}>
+      <AuthCtx.Provider value={{ user, profile, configured, can, signOut }}>
         <BranchCtx.Provider value={{ branches, branchId, setBranchId, branch }}>
           <div className="flex min-h-screen">
             <aside className={cn("fixed inset-y-0 left-0 z-50 hidden transition-all duration-200 ease-out lg:block no-print", collapsed ? "w-[68px]" : "w-[236px]")}>

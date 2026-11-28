@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Banknote, CreditCard, Minus, Pause, Play, Plus, Search, ShoppingCart, Trash2, Wallet } from "lucide-react";
+import { Banknote, Clock, CreditCard, Minus, Pause, Play, Plus, Search, ShoppingCart, Trash2, Wallet } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { getSetting, logAudit, useTable } from "@/lib/data";
 import { docNo, money, n, round2 } from "@/lib/utils";
@@ -26,6 +26,7 @@ export default function PosPage() {
   const [payOpen, setPayOpen] = useState(false);
   const [method, setMethod] = useState("Cash");
   const [received, setReceived] = useState("");
+  const [allowPartial, setAllowPartial] = useState(false);
   const [saving, setSaving] = useState(false);
   const [held, setHeld] = useState(null);
 
@@ -70,13 +71,18 @@ export default function PosPage() {
 
   async function completeSale() {
     const sb = supabase(); if (!sb) return toast("Supabase is not configured — open the Setup page.", "error");
-    if (method === "Cash" && received !== "" && n(received) < total) return toast("Cash received is less than the total due.", "error");
+    const isCredit = method === "Credit";
+    const isPartial = isCredit || (allowPartial && received !== "" && n(received) < total);
+    if (isPartial && !customerId) return toast("Please select a customer for Credit / Partial payment.", "warn");
+    if (method === "Cash" && !allowPartial && received !== "" && n(received) < total) return toast("Cash received is less than the total due.", "error");
+    const paidAmount = isCredit ? 0 : (isPartial ? Math.max(0, round2(n(received))) : total);
+    const saleStatus = paidAmount >= total ? "Paid" : "Pending";
     setSaving(true);
     const branch_id = branchId !== "all" ? branchId : (branches.find((b) => b.is_main)?.id || branches[0]?.id || null);
     const invoice_no = docNo("INV");
     const { data: sale, error } = await sb.from("sales").insert({
       invoice_no, customer_id: customerId || null, branch_id, payment_method: method,
-      status: "Paid", subtotal, discount, tax_rate: n(taxRate), tax_amount: tax, total, amount_paid: total,
+      status: saleStatus, subtotal, discount, tax_rate: n(taxRate), tax_amount: tax, total, amount_paid: paidAmount,
       cashier_name: localStorage.getItem("xona_profile_name") || "Admin",
     }).select().single();
     if (error) { setSaving(false); return toast(error.message, "error"); }
@@ -107,7 +113,20 @@ export default function PosPage() {
           <div className="mb-4 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
             <div className="relative w-full sm:min-w-[220px] sm:flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products by name or SKU…" className="w-full pl-9" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && search.trim()) {
+                    e.preventDefault();
+                    const q = search.trim().toLowerCase();
+                    const exact = prodQ.rows.find((p) => (p.sku || "").toLowerCase() === q) || (products.length === 1 ? products[0] : null);
+                    if (exact) { add(exact); setSearch(""); toast(`Added ${exact.name}`); }
+                  }
+                }}
+                placeholder="Scan barcode / SKU (Enter) or search product…"
+                className="w-full pl-9"
+              />
             </div>
             <Select value={customerId} onChange={(e) => setCustomerId(e.target.value)} className="w-full sm:w-56">
               <option value="">Walk-in Customer</option>
@@ -219,14 +238,19 @@ export default function PosPage() {
       <Modal open={payOpen} onClose={() => setPayOpen(false)} title="Complete Payment" sub={`Total amount due ${money(total)}`}>
         <div className="space-y-5">
           <Field label="Payment Method">
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              {[["Cash", Banknote], ["Card", CreditCard], ["Digital Wallet", Wallet]].map(([m, Icon]) => (
-                <button key={m} onClick={() => setMethod(m)} className={cn("flex h-10 items-center justify-center gap-2 rounded-lg border text-sm font-medium transition", method === m ? "border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600 dark:bg-blue-500/10 dark:text-blue-300" : "border-slate-200 text-slate-600 hover:border-slate-300 dark:border-slate-700")}>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {[["Cash", Banknote], ["Card", CreditCard], ["Digital Wallet", Wallet], ["Credit", Clock]].map(([m, Icon]) => (
+                <button key={m} onClick={() => setMethod(m)} className={cn("flex h-10 items-center justify-center gap-1.5 rounded-lg border text-xs font-semibold transition sm:text-sm", method === m ? "border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600 dark:bg-blue-500/10 dark:text-blue-300" : "border-slate-200 text-slate-600 hover:border-slate-300 dark:border-slate-700")}>
                   <Icon className="h-4 w-4" /> {m === "Digital Wallet" ? "Wallet" : m}
                 </button>
               ))}
             </div>
           </Field>
+          {method === "Credit" && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50/70 px-3.5 py-2.5 text-[12.5px] text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
+              {customerId ? "Full amount will be recorded as Customer Credit (Pending due)." : "Please select a customer above to record a Credit sale."}
+            </div>
+          )}
           {method === "Cash" && (
             <>
               <Field label="Cash Received">
@@ -236,7 +260,12 @@ export default function PosPage() {
                 {[100, 500, 1000, 5000].map((a) => <Button key={a} size="sm" variant="secondary" onClick={() => setReceived(String(a))}>PKR {a}</Button>)}
                 <Button size="sm" variant="secondary" onClick={() => setReceived(String(total))}>Exact {money(total)}</Button>
               </div>
-              {received !== "" && <div className="flex items-center justify-between rounded-lg bg-emerald-50 px-4 py-3 dark:bg-emerald-500/10"><span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Change Due</span><span className="tnum text-lg font-bold text-emerald-700 dark:text-emerald-300">{money(Math.max(0, change))}</span></div>}
+              <label className="flex cursor-pointer items-center gap-2 text-[12.5px] text-slate-600 dark:text-slate-300">
+                <input type="checkbox" checked={allowPartial} onChange={(e) => setAllowPartial(e.target.checked)} className="h-4 w-4 rounded accent-blue-600" />
+                Allow partial payment (record remaining balance as customer due)
+              </label>
+              {received !== "" && n(received) >= total && <div className="flex items-center justify-between rounded-lg bg-emerald-50 px-4 py-3 dark:bg-emerald-500/10"><span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Change Due</span><span className="tnum text-lg font-bold text-emerald-700 dark:text-emerald-300">{money(Math.max(0, change))}</span></div>}
+              {allowPartial && received !== "" && n(received) < total && <div className="flex items-center justify-between rounded-lg bg-amber-50 px-4 py-3 dark:bg-amber-500/10"><span className="text-sm font-medium text-amber-700 dark:text-amber-300">Remaining Due (Credit)</span><span className="tnum text-lg font-bold text-amber-700 dark:text-amber-300">{money(Math.max(0, total - n(received)))}</span></div>}
             </>
           )}
           <div className="flex flex-wrap justify-end gap-2 pt-1">

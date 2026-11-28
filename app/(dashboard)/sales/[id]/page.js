@@ -45,7 +45,7 @@ export default function InvoicePage({ params }) {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 no-print">
         <Link href="/sales" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-blue-600"><ArrowLeft className="h-4 w-4" /> Back to Sales Invoices</Link>
         <div className="flex items-center gap-2">
-          <span className="hidden text-xs text-slate-400 sm:inline">Print format: A4 Landscape (1/4th)</span>
+          <span className="hidden text-xs text-slate-400 sm:inline">Print format: A6 Landscape (1/4th A4)</span>
           <Button onClick={() => window.print()}><Printer className="h-4 w-4" /> Print Receipt</Button>
         </div>
       </div>

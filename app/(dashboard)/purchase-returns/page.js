@@ -34,7 +34,7 @@ export default function PurchaseReturnsPage() {
       afterSave={afterSave}
       fields={[
         { key: "purchase_id", label: "Purchase Order", type: "select", required: true, span: 2, optionsFrom: { rows: poQ.rows.map((p) => ({ id: p.id, name: `${p.po_no} — ${money(p.total)}` })) } },
-        { key: "amount", label: "Refund Amount ($)", type: "number", required: true, placeholder: "0.00" },
+        { key: "amount", label: "Refund Amount (PKR)", type: "number", required: true, placeholder: "0.00" },
         { key: "status", label: "Status", type: "select", options: [{ value: "Processed", label: "Processed" }, { value: "Pending", label: "Pending" }, { value: "Rejected", label: "Rejected" }] },
         { key: "reason", label: "Reason", span: 2, placeholder: "e.g. Damaged goods received" },
       ]}

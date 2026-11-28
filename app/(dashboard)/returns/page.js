@@ -92,7 +92,7 @@ export default function ReturnsPage() {
             </Select>
           </Field>
           {selectedSale && <p className="rounded-lg bg-slate-50 px-3.5 py-2.5 text-[13px] text-slate-500 dark:bg-slate-800">Invoice total {money(selectedSale.total)} • {selectedSale.payment_method} • {selectedSale.status}</p>}
-          <Field label="Refund Amount ($)" required><Input type="number" step="any" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} required /></Field>
+          <Field label="Refund Amount (PKR)" required><Input type="number" step="any" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} required /></Field>
           <Field label="Reason"><Select value={reason} onChange={(e) => setReason(e.target.value)}><option>Damaged product</option><option>Wrong item</option><option>Customer changed mind</option><option>Expired</option><option>Other</option></Select></Field>
           <div className="flex justify-end gap-2 pt-1"><Button type="button" variant="secondary" onClick={() => setOpen(false)}>Cancel</Button><Button type="submit" disabled={saving || !saleId}>{saving ? "Processing…" : "Submit Return"}</Button></div>
         </form>
