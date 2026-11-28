@@ -102,61 +102,60 @@ export default function InvoicePage({ params }) {
       </div>
 
       <Card className="print-area print-half-a4 mx-auto max-w-3xl p-4 text-slate-800 dark:text-slate-100 print:p-2">
-        {/* Minimal IMS Header */}
-        <div className="flex flex-wrap items-start justify-between gap-2 border-b border-slate-200 pb-2.5 dark:border-slate-800 print:pb-1.5">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-baseline gap-x-2">
+        {/* Minimal IMS Header — Left business info, Right pinned invoice badge & date */}
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-2 dark:border-slate-800 print:pb-1.5">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
               {receipt.show_logo !== false && (
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-blue-600 text-[9px] font-bold text-white print:h-5 print:w-5 print:text-[8px]">IMS</span>
+                <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-blue-600 text-[9px] font-bold text-white print:h-5 print:w-5 print:text-[8px]">IMS</span>
               )}
               <span className="text-[15px] font-extrabold tracking-tight text-slate-900 dark:text-white print:text-[13px]">{org.business_name || "IMS"}</span>
-              {(addressLine || phoneLine) && (
-                <span className="text-[11px] text-slate-500 print:text-[9px]">
-                  {[addressLine, phoneLine ? `Tel: ${phoneLine}` : ""].filter(Boolean).join(" • ")}
-                </span>
-              )}
             </div>
-            {receipt.header && <p className="mt-0.5 text-[11px] text-slate-400 print:text-[8.5px]">{receipt.header}</p>}
+            {(addressLine || phoneLine) && (
+              <p className="mt-0.5 text-[11px] leading-snug text-slate-500 print:text-[9px]">
+                {[addressLine, phoneLine ? `Tel: ${phoneLine}` : ""].filter(Boolean).join(" • ")}
+              </p>
+            )}
           </div>
           <div className="shrink-0 text-right">
-            <div className="flex items-center justify-end gap-2">
-              <span className="rounded bg-blue-50 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 print:border print:border-slate-300 print:bg-transparent print:text-[10px] print:text-slate-900">Sales Invoice</span>
+            <div className="flex items-center justify-end gap-1.5">
+              <span className="whitespace-nowrap rounded bg-blue-50 px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wider text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 print:border print:border-slate-300 print:bg-transparent print:text-[9.5px] print:text-slate-900">Sales Invoice</span>
               <span className="print:hidden">{statusBadge(sale.status)}</span>
             </div>
-            <p className="mt-0.5 text-[10.5px] text-slate-400 print:text-[8.5px]">{fmtShortDate(sale.created_at)} • {fmtShortTime(sale.created_at)}</p>
+            <p className="mt-1 whitespace-nowrap text-[10.5px] text-slate-400 print:mt-0.5 print:text-[8.5px]">{fmtShortDate(sale.created_at)} • {fmtShortTime(sale.created_at)}</p>
           </div>
         </div>
 
-        {/* Minimal Meta Strip */}
-        <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 border-b border-slate-100 py-2 text-[11.5px] sm:grid-cols-5 dark:border-slate-800 print:grid-cols-5 print:py-1 print:text-[9px]">
-          <div><span className="text-slate-400">SerialNo: </span><strong className="font-semibold text-blue-600 dark:text-blue-400 print:text-slate-900">{sale.invoice_no}</strong></div>
-          <div><span className="text-slate-400">Type: </span><strong className="uppercase">{sale.payment_method}</strong></div>
-          <div className="sm:col-span-2 print:col-span-2 truncate"><span className="text-slate-400">To: </span><strong className="font-semibold">{customer?.name || "Walk-in Customer"}</strong></div>
-          {receipt.show_cashier !== false && <div className="sm:text-right print:text-right"><span className="text-slate-400">User: </span><strong>{sale.cashier_name || "Admin"}</strong></div>}
+        {/* Minimal Single-Line Meta Strip */}
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-0.5 border-b border-slate-100 py-1.5 text-[11.5px] dark:border-slate-800 print:py-1 print:text-[9px]">
+          <span className="whitespace-nowrap"><span className="text-slate-400">SerialNo: </span><strong className="font-semibold text-blue-600 dark:text-blue-400 print:text-slate-900">{sale.invoice_no}</strong></span>
+          <span className="whitespace-nowrap"><span className="text-slate-400">Type: </span><strong className="uppercase">{sale.payment_method}</strong></span>
+          <span className="min-w-0 truncate"><span className="text-slate-400">To: </span><strong className="font-semibold">{customer?.name || "Walk-in Customer"}</strong></span>
+          {receipt.show_cashier !== false && <span className="whitespace-nowrap"><span className="text-slate-400">User: </span><strong>{sale.cashier_name || "Admin"}</strong></span>}
         </div>
 
-        {/* Ultra-Compact Items Table */}
+        {/* Ultra-Compact Single-Line Items Table */}
         <div className="mt-2 overflow-x-auto print:mt-1">
-          <table className="w-full border-collapse text-[12px] print:text-[9px]">
+          <table className="w-full border-collapse text-[11.5px] print:text-[9px]">
             <thead>
               <tr className="border-y border-slate-200 bg-slate-50/80 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-700 dark:bg-slate-800/50 print:text-[8px]">
-                <th className="w-8 px-1.5 py-1 text-center print:py-0.5">S.No</th>
-                <th className="px-2 py-1 text-left print:px-1.5 print:py-0.5">Item Name</th>
-                <th className="px-2 py-1 text-left print:px-1.5 print:py-0.5">Description</th>
-                <th className="w-12 px-1.5 py-1 text-center print:py-0.5">QTY</th>
-                <th className="w-20 px-2 py-1 text-right print:px-1.5 print:py-0.5">Rate</th>
-                <th className="w-24 px-2 py-1 text-right print:px-1.5 print:py-0.5">Amount</th>
+                <th className="w-8 whitespace-nowrap px-1.5 py-1 text-center print:py-0.5">S.No</th>
+                <th className="whitespace-nowrap px-2 py-1 text-left print:px-1.5 print:py-0.5">Item Name</th>
+                <th className="whitespace-nowrap px-2 py-1 text-left print:px-1.5 print:py-0.5">Description</th>
+                <th className="w-10 whitespace-nowrap px-1.5 py-1 text-center print:py-0.5">QTY</th>
+                <th className="whitespace-nowrap px-2 py-1 text-right print:px-1.5 print:py-0.5">Rate</th>
+                <th className="whitespace-nowrap px-2 py-1 text-right print:px-1.5 print:py-0.5">Amount</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {items.map((i, idx) => (
-                <tr key={i.id} className="leading-tight">
-                  <td className="tnum px-1.5 py-1 text-center text-slate-400 print:py-[1.5px]">{idx + 1}</td>
-                  <td className="px-2 py-1 font-medium text-slate-800 dark:text-slate-100 print:px-1.5 print:py-[1.5px]">{i.product_name}</td>
-                  <td className="px-2 py-1 text-slate-500 print:px-1.5 print:py-[1.5px]">{descMap[i.product_id] || "—"}</td>
-                  <td className="tnum px-1.5 py-1 text-center print:py-[1.5px]">{n(i.qty)}</td>
-                  <td className="tnum px-2 py-1 text-right text-slate-600 dark:text-slate-300 print:px-1.5 print:py-[1.5px]">{money(i.price)}</td>
-                  <td className="tnum px-2 py-1 text-right font-semibold print:px-1.5 print:py-[1.5px]">{money(i.line_total ?? n(i.price) * n(i.qty))}</td>
+                <tr key={i.id} className="leading-none">
+                  <td className="tnum whitespace-nowrap px-1.5 py-1 text-center text-slate-400 print:py-[2px]">{idx + 1}</td>
+                  <td className="whitespace-nowrap px-2 py-1 font-medium text-slate-800 dark:text-slate-100 print:px-1.5 print:py-[2px]">{i.product_name}</td>
+                  <td className="max-w-[160px] truncate px-2 py-1 text-slate-500 print:px-1.5 print:py-[2px]">{descMap[i.product_id] || "—"}</td>
+                  <td className="tnum whitespace-nowrap px-1.5 py-1 text-center print:py-[2px]">{n(i.qty)}</td>
+                  <td className="tnum whitespace-nowrap px-2 py-1 text-right text-slate-600 dark:text-slate-300 print:px-1.5 print:py-[2px]">{money(i.price)}</td>
+                  <td className="tnum whitespace-nowrap px-2 py-1 text-right font-semibold print:px-1.5 print:py-[2px]">{money(i.line_total ?? n(i.price) * n(i.qty))}</td>
                 </tr>
               ))}
             </tbody>
