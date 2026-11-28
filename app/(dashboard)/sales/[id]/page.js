@@ -207,6 +207,12 @@ export default function InvoicePage({ params }) {
             </div>
           </div>
         </div>
+
+        {/* Compact Developer Branding Footer */}
+        <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-1 text-[9.5px] text-slate-500 dark:border-slate-800 dark:text-slate-400 print:mt-1 print:border-slate-300 print:pt-0.5 print:text-[7.5px] print:text-slate-600">
+          <span>Software by <strong className="font-semibold text-slate-700 dark:text-slate-300 print:text-slate-800">Talha Shaikh</strong></span>
+          <span>talhashaikh.com • +923053591906</span>
+        </div>
       </Card>
     </div>
   );

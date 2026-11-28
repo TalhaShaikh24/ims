@@ -138,16 +138,22 @@ function Sidebar({ onNavigate, collapsed = false }) {
       </nav>
       <div className={cn("shrink-0 border-t border-white/[0.06] py-3", collapsed ? "flex justify-center px-2" : "px-4")}>
         {collapsed ? (
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white/[0.06] text-[10px] font-bold text-emerald-400" title="IMS POS & Business OS v1.0.0">
+          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white/[0.06] text-[10px] font-bold text-emerald-400" title="IMS Business OS • By Talha Shaikh (talhashaikh.com | +923053591906)">
             <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
           </span>
         ) : (
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[11.5px] font-semibold text-slate-200">IMS Business OS</p>
-              <p className="text-[10.5px] text-slate-500">v1.0.0 • Enterprise</p>
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[11.5px] font-semibold text-slate-200">IMS Business OS</p>
+                <p className="text-[10.5px] text-slate-500">v1.0.0 • Enterprise</p>
+              </div>
+              <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" title="System Online" />
             </div>
-            <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" title="System Online" />
+            <div className="border-t border-white/[0.06] pt-1.5 text-[10px] leading-tight text-slate-400">
+              <p className="truncate">By <a href="https://talhashaikh.com" target="_blank" rel="noreferrer" className="font-semibold text-slate-300 transition hover:text-white">Talha Shaikh</a> • <a href="https://talhashaikh.com" target="_blank" rel="noreferrer" className="hover:text-slate-200">talhashaikh.com</a></p>
+              <p className="mt-0.5 text-[9.5px] text-slate-500">+923053591906</p>
+            </div>
           </div>
         )}
       </div>

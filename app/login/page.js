@@ -52,7 +52,7 @@ export default function LoginPage() {
             ))}
           </ul>
         </div>
-        <p className="flex items-center gap-2 text-xs text-slate-400"><CheckCircle2 className="h-4 w-4 text-emerald-400" /> IMS POS & Business OS • Enterprise v1.0.0</p>
+        <p className="flex items-center gap-2 text-xs text-slate-400"><CheckCircle2 className="h-4 w-4 text-emerald-400" /> IMS Business OS • By Talha Shaikh (talhashaikh.com • +923053591906)</p>
       </div>
 
       {/* Form */}
@@ -94,6 +94,7 @@ export default function LoginPage() {
             </button>
           </form>
           <p className="mt-6 text-center text-sm text-slate-500">New to IMS? <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-700">Create an account</Link></p>
+          <p className="mt-4 text-center text-[11px] text-slate-400">Software by <a href="https://talhashaikh.com" target="_blank" rel="noreferrer" className="font-semibold text-slate-600 hover:text-blue-600 dark:text-slate-300">Talha Shaikh</a> • talhashaikh.com • +923053591906</p>
         </div>
       </div>
     </div>
