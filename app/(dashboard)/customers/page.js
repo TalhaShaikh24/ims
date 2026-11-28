@@ -59,14 +59,13 @@ export default function CustomersPage() {
 
   return (
     <>
-      <EntityManager title="Customers & Credit" sub="Customer profiles, credit limits and outstanding balances — totals computed from sales" table="customers" entityName="Customer" addLabel="Add New Customer"
+      <EntityManager title="Customers & Credit" sub="Customer profiles and outstanding balances — totals computed from sales" table="customers" entityName="Customer" addLabel="Add New Customer"
         searchKeys={["name", "email", "phone"]}
-        formDefaults={{ name: "", email: "", phone: "", address: "", credit_limit: "" }}
+        formDefaults={{ name: "", email: "", phone: "", address: "" }}
         fields={[
           { key: "name", label: "Full Name", required: true, placeholder: "e.g. Ali Khan" },
           { key: "email", label: "Email", type: "email", placeholder: "ali@example.com" },
           { key: "phone", label: "Phone", placeholder: "+92 300 1234567" },
-          { key: "credit_limit", label: "Credit Limit (PKR)", type: "number", placeholder: "0.00" },
           { key: "address", label: "Address", type: "textarea", span: 2, placeholder: "Street, City" },
         ]}
         rowActions={(c) => {
@@ -82,8 +81,7 @@ export default function CustomersPage() {
           { label: "Contact", render: (c) => <span className="text-slate-500">{[c.email, c.phone].filter(Boolean).join(" • ") || "—"}</span> },
           { label: "Total Purchases", align: "right", render: (c) => money(t(c.id).purchases) },
           { label: "Outstanding", align: "right", render: (c) => money(Math.max(0, t(c.id).purchases - t(c.id).paid)) },
-          { label: "Credit Limit", align: "right", render: (c) => money(c.credit_limit) },
-          { label: "Status", render: (c) => { const due = Math.max(0, t(c.id).purchases - t(c.id).paid); return due > 0 && n(c.credit_limit) > 0 && due > n(c.credit_limit) ? <Badge tone="red">Over Limit</Badge> : <Badge tone="green">Active</Badge>; } },
+          { label: "Status", render: (c) => { const due = Math.max(0, t(c.id).purchases - t(c.id).paid); return due > 0 ? <Badge tone="amber">Due</Badge> : <Badge tone="green">Active</Badge>; } },
         ]} />
 
       <Modal open={!!payCust} onClose={() => setPayCust(null)} title="Receive Customer Payment" sub={payCust ? `${payCust.name} — ${pendingInvoices.length} unpaid invoice(s)` : ""}>
