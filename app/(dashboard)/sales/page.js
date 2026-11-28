@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { CircleDollarSign, Download, Eye, FileText, Percent, ShoppingCart, Trash2 } from "lucide-react";
+import { CircleDollarSign, Download, Eye, FileText, Percent, Printer, ShoppingCart, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { logAudit, useTable } from "@/lib/data";
 import { downloadCSV, fmtDate, money, n } from "@/lib/utils";
@@ -85,8 +85,9 @@ export default function SalesPage() {
           { label: "Total", align: "right", render: (s) => money(s.total) },
           { label: "Actions", align: "right", render: (s) => (
             <div className="flex justify-end gap-1">
-              <Link href={`/sales/${s.id}`} className="inline-flex rounded-lg p-1.5 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-slate-800" aria-label="View invoice"><Eye className="h-4 w-4" /></Link>
-              <button onClick={() => remove(s)} className="inline-flex rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-slate-800" aria-label="Delete invoice"><Trash2 className="h-4 w-4" /></button>
+              <Link href={`/sales/${s.id}`} className="inline-flex rounded-lg p-1.5 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-slate-800" aria-label="View invoice" title="View invoice"><Eye className="h-4 w-4" /></Link>
+              <Link href={`/sales/${s.id}?print=1`} className="inline-flex rounded-lg p-1.5 text-slate-400 transition hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-800" aria-label="Print invoice" title="Print invoice"><Printer className="h-4 w-4" /></Link>
+              <button onClick={() => remove(s)} className="inline-flex rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-slate-800" aria-label="Delete invoice" title="Delete invoice"><Trash2 className="h-4 w-4" /></button>
             </div>
           ) },
         ]} />

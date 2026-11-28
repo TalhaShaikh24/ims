@@ -1,5 +1,5 @@
 "use client";
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Printer } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -54,6 +54,16 @@ export default function InvoicePage({ params }) {
   const [receipt, setReceipt] = useState({});
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const autoPrinted = useRef(false);
+
+  useEffect(() => {
+    if (loading || !sale || autoPrinted.current) return;
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("print") === "1") {
+      autoPrinted.current = true;
+      const t = setTimeout(() => window.print(), 250);
+      return () => clearTimeout(t);
+    }
+  }, [loading, sale]);
 
   useEffect(() => {
     (async () => {
