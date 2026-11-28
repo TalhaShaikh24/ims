@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  ArrowLeftRight, BarChart3, Bell, Boxes, Building2, Check, ChevronDown, ClipboardList, Cloud,
+  ArrowLeftRight, BarChart3, Bell, BookOpen, Boxes, Building2, Check, ChevronDown, ClipboardList, Cloud,
   CreditCard, FileText, History, KeyRound, Landmark, LayoutDashboard, LogOut, Maximize2, Menu, Minimize2,
   Moon, Package, PanelLeftClose, PanelLeftOpen, Receipt, RotateCcw, Search, Settings, ShieldCheck,
   ShoppingCart, Store, Sun, Tags, Truck, Undo2, UserRound, Users, Wallet, X,
@@ -56,6 +56,7 @@ const NAV = [
   {
     group: "CRM & Accounts", items: [
       { href: "/customers", label: "Customers & Credit", icon: Users, perm: "Access POS Terminal" },
+      { href: "/ledger", label: "General Ledger", icon: BookOpen, perm: "Access POS Terminal" },
       { href: "/expenses", label: "Expenses", icon: Receipt, perm: "Manage Cash Register" },
       { href: "/financials", label: "Financials & P&L", icon: Wallet, perm: "View P&L Reports" },
     ]
