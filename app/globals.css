@@ -53,6 +53,7 @@ body { @apply bg-[#F1F5F9] text-slate-700 antialiased dark:bg-[#090D16] dark:tex
   @page { size: A4 portrait; margin: 10mm; }
   @page quarter { size: A6 landscape; margin: 4mm; }
   @page half { size: A5 landscape; margin: 5mm; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   body * { visibility: hidden; }
   .print-area, .print-area * { visibility: visible; }
   .print-area { position: absolute; inset: 0; padding: 12px; background: #ffffff !important; color: #0f172a !important; box-shadow: none !important; border: none !important; }
