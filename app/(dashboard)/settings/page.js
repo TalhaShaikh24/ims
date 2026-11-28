@@ -19,7 +19,7 @@ function Toggle({ label, sub, value, onChange }) {
 export default function SettingsPage() {
   const toast = useToast();
   const [org, setOrg] = useState({ business_name: "IMS", currency: "PKR", tax_rate: 8.5, timezone: "Asia/Karachi", email: "", phone: "", address: "" });
-  const [receipt, setReceipt] = useState({ header: "", footer: "", show_logo: true, show_tax: true, show_cashier: true });
+  const [receipt, setReceipt] = useState({ header: "", footer: "", sale_policy: "", instructions: "", show_logo: true, show_tax: true, show_cashier: true });
   const [profile, setProfile] = useState({ name: "Admin", email: "", phone: "" });
   const [saving, setSaving] = useState(false);
 
@@ -65,8 +65,10 @@ export default function SettingsPage() {
           <CardHeader title="Receipt Settings" sub="Printed on every invoice receipt" />
           <div className="px-6 py-5">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label="Header Text"><Input value={receipt.header} onChange={(e) => setReceipt({ ...receipt, header: e.target.value })} placeholder="Thank you for shopping with us!" /></Field>
-              <Field label="Footer Text"><Input value={receipt.footer} onChange={(e) => setReceipt({ ...receipt, footer: e.target.value })} placeholder="Please visit again!" /></Field>
+              <Field label="Header Text"><Input value={receipt.header || ""} onChange={(e) => setReceipt({ ...receipt, header: e.target.value })} placeholder="Thank you for shopping with us!" /></Field>
+              <Field label="Footer Text"><Input value={receipt.footer || ""} onChange={(e) => setReceipt({ ...receipt, footer: e.target.value })} placeholder="Please visit again!" /></Field>
+              <Field label="Sale Policy"><Input value={receipt.sale_policy || ""} onChange={(e) => setReceipt({ ...receipt, sale_policy: e.target.value })} placeholder="e.g. Bill must be paid within 01 week." /></Field>
+              <Field label="Instructions"><Input value={receipt.instructions || ""} onChange={(e) => setReceipt({ ...receipt, instructions: e.target.value })} placeholder="e.g. Checking warranty 02 days only." /></Field>
             </div>
             <div className="mt-2 divide-y divide-slate-100 dark:divide-slate-800">
               <Toggle label="Show Business Logo" value={receipt.show_logo !== false} onChange={(v) => setReceipt({ ...receipt, show_logo: v })} />
