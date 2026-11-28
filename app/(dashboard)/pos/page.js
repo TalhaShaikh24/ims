@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Banknote, Clock, CreditCard, Minus, Pause, Play, Plus, Search, ShoppingCart, Trash2, Wallet } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { getSetting, logAudit, useTable } from "@/lib/data";
+import { getSetting, logAudit, setSetting, useTable } from "@/lib/data";
 import { docNo, money, n, round2 } from "@/lib/utils";
 import { useBranch } from "@/components/Shell";
 import { Button, Card, Field, Input, Modal, PageHeader, SchemaBanner, Select, useToast } from "@/components/ui";
@@ -27,10 +27,20 @@ export default function PosPage() {
   const [method, setMethod] = useState("Cash");
   const [received, setReceived] = useState("");
   const [allowPartial, setAllowPartial] = useState(false);
+  const [ledger, setLedger] = useState({ customer_advances: {}, supplier_advances: {}, entries: [] });
+  const [useAdvance, setUseAdvance] = useState(false);
   const [saving, setSaving] = useState(false);
   const [held, setHeld] = useState(null);
 
-  useEffect(() => { getSetting("org", { tax_rate: 0 }).then((o) => setTaxRate(n(o?.tax_rate ?? 0))); try { const h = localStorage.getItem("xona_hold"); if (h) setHeld(JSON.parse(h)); } catch {} }, []);
+  useEffect(() => {
+    getSetting("org", { tax_rate: 0 }).then((o) => setTaxRate(n(o?.tax_rate ?? 0)));
+    getSetting("party_ledger", { customer_advances: {}, supplier_advances: {}, entries: [] }).then((v) => {
+      if (v && typeof v === "object") setLedger({ customer_advances: v.customer_advances || {}, supplier_advances: v.supplier_advances || {}, entries: Array.isArray(v.entries) ? v.entries : [] });
+    });
+    try { const h = localStorage.getItem("xona_hold"); if (h) setHeld(JSON.parse(h)); } catch {}
+  }, []);
+
+  const custAdvance = customerId ? round2(n(ledger.customer_advances?.[customerId])) : 0;
 
   const products = useMemo(() => prodQ.rows.filter((p) => (cat === "all" || p.category_id === cat) && (p.name + " " + (p.sku || "")).toLowerCase().includes(search.toLowerCase())), [prodQ.rows, cat, search]);
   const catName = useMemo(() => new Map(catQ.rows.map((c) => [c.id, c.name])), [catQ.rows]);
@@ -71,11 +81,14 @@ export default function PosPage() {
 
   async function completeSale() {
     const sb = supabase(); if (!sb) return toast("Supabase is not configured — open the Setup page.", "error");
+    const advApplied = useAdvance && custAdvance > 0 ? Math.min(custAdvance, total) : 0;
+    const netDueAfterAdv = round2(Math.max(0, total - advApplied));
     const isCredit = method === "Credit";
-    const isPartial = isCredit || (allowPartial && received !== "" && n(received) < total);
-    if (isPartial && !customerId) return toast("Please select a customer for Credit / Partial payment.", "warn");
-    if (method === "Cash" && !allowPartial && received !== "" && n(received) < total) return toast("Cash received is less than the total due.", "error");
-    const paidAmount = isCredit ? 0 : (isPartial ? Math.max(0, round2(n(received))) : total);
+    const isPartial = isCredit || (allowPartial && received !== "" && n(received) < netDueAfterAdv);
+    if ((isPartial || advApplied > 0) && !customerId) return toast("Please select a customer for Credit / Partial / Advance payment.", "warn");
+    if (method === "Cash" && !allowPartial && received !== "" && n(received) < netDueAfterAdv) return toast("Cash received is less than the remaining total due.", "error");
+    const cashOrCardPaid = isCredit ? 0 : (isPartial ? Math.max(0, round2(n(received))) : netDueAfterAdv);
+    const paidAmount = round2(Math.min(total, advApplied + cashOrCardPaid));
     const saleStatus = paidAmount >= total ? "Paid" : "Pending";
     setSaving(true);
     const branch_id = branchId !== "all" ? branchId : (branches.find((b) => b.is_main)?.id || branches[0]?.id || null);
@@ -94,8 +107,18 @@ export default function PosPage() {
       await sb.from("products").update({ stock: n(fresh?.stock) - i.qty }).eq("id", i.id);
       await sb.from("stock_movements").insert({ product_id: i.id, branch_id, type: "Sale", qty: -i.qty, ref: invoice_no });
     }
+    if (advApplied > 0 && customerId) {
+      const cust = custQ.rows.find((c) => c.id === customerId);
+      const nextLedger = {
+        ...ledger,
+        customer_advances: { ...ledger.customer_advances, [customerId]: round2(Math.max(0, custAdvance - advApplied)) },
+        entries: [{ id: Date.now().toString(36), party_type: "customer", party_id: customerId, party_name: cust?.name || "Customer", kind: "advance_used", amount: advApplied, method: "POS", note: invoice_no, created_at: new Date().toISOString() }, ...ledger.entries].slice(0, 200),
+      };
+      await setSetting("party_ledger", nextLedger);
+      setLedger(nextLedger);
+    }
     await logAudit("Sale", `${invoice_no} — ${money(total)} (${method})`);
-    setSaving(false); setPayOpen(false); setCart([]);
+    setSaving(false); setPayOpen(false); setCart([]); setUseAdvance(false);
     toast(`Sale ${invoice_no} completed.`);
     router.push(`/sales/${sale.id}`);
   }
@@ -237,6 +260,15 @@ export default function PosPage() {
 
       <Modal open={payOpen} onClose={() => setPayOpen(false)} title="Complete Payment" sub={`Total amount due ${money(total)}`}>
         <div className="space-y-5">
+          {custAdvance > 0 && (
+            <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50/70 px-3.5 py-2.5 text-sm dark:border-emerald-500/30 dark:bg-emerald-500/10">
+              <span className="flex items-center gap-2 font-medium text-emerald-800 dark:text-emerald-300">
+                <input type="checkbox" checked={useAdvance} onChange={(e) => setUseAdvance(e.target.checked)} className="h-4 w-4 rounded accent-emerald-600" />
+                Apply Customer Advance ({money(custAdvance)} available)
+              </span>
+              {useAdvance && <span className="tnum font-bold text-emerald-700 dark:text-emerald-300">−{money(Math.min(custAdvance, total))}</span>}
+            </label>
+          )}
           <Field label="Payment Method">
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {[["Cash", Banknote], ["Card", CreditCard], ["Digital Wallet", Wallet], ["Credit", Clock]].map(([m, Icon]) => (
