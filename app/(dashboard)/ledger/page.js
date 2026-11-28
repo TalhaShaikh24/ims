@@ -91,17 +91,33 @@ export default function GeneralLedgerPage() {
       salesQ.rows
         .filter((s) => s.customer_id && byBranch(s) && (partyId === "all" || s.customer_id === partyId))
         .forEach((s) => {
+          const pName = custMap.get(s.customer_id)?.name || "Customer";
           list.push({
             id: `sale-${s.id}`,
             date: s.created_at,
+            seq: 1,
             ref: s.invoice_no,
-            party: custMap.get(s.customer_id)?.name || "Customer",
+            party: pName,
             kind: "invoice",
-            typeLabel: `Sale Invoice (${s.payment_method})`,
+            typeLabel: "Sale Invoice",
             debit: round2(n(s.total)),
-            credit: round2(n(s.amount_paid)),
+            credit: 0,
             note: s.status,
           });
+          if (n(s.amount_paid) > 0) {
+            list.push({
+              id: `sale-pay-${s.id}`,
+              date: s.created_at,
+              seq: 2,
+              ref: s.invoice_no,
+              party: pName,
+              kind: "payment",
+              typeLabel: `Payment Received (${s.payment_method})`,
+              debit: 0,
+              credit: round2(n(s.amount_paid)),
+              note: n(s.amount_paid) >= n(s.total) ? "Full settlement" : "Partial payment",
+            });
+          }
         });
 
       retQ.rows
@@ -110,6 +126,7 @@ export default function GeneralLedgerPage() {
           list.push({
             id: `sret-${r.id}`,
             date: r.created_at,
+            seq: 3,
             ref: r.return_no,
             party: custMap.get(r.customer_id)?.name || "Customer",
             kind: "return",
@@ -126,6 +143,7 @@ export default function GeneralLedgerPage() {
           list.push({
             id: `adv-${e.id}`,
             date: e.created_at,
+            seq: 4,
             ref: "ADV-RCV",
             party: e.party_name || custMap.get(e.party_id)?.name || "Customer",
             kind: "advance",
@@ -139,17 +157,33 @@ export default function GeneralLedgerPage() {
       poQ.rows
         .filter((p) => p.supplier_id && byBranch(p) && (partyId === "all" || p.supplier_id === partyId))
         .forEach((p) => {
+          const sName = supMap.get(p.supplier_id)?.name || "Supplier";
           list.push({
             id: `po-${p.id}`,
             date: p.order_date || p.created_at,
+            seq: 1,
             ref: p.po_no,
-            party: supMap.get(p.supplier_id)?.name || "Supplier",
+            party: sName,
             kind: "invoice",
             typeLabel: `Purchase Order (${p.status})`,
-            debit: round2(n(p.amount_paid)),
+            debit: 0,
             credit: round2(n(p.total)),
             note: p.status,
           });
+          if (n(p.amount_paid) > 0) {
+            list.push({
+              id: `po-pay-${p.id}`,
+              date: p.order_date || p.created_at,
+              seq: 2,
+              ref: p.po_no,
+              party: sName,
+              kind: "payment",
+              typeLabel: "Payment Paid to Supplier",
+              debit: round2(n(p.amount_paid)),
+              credit: 0,
+              note: n(p.amount_paid) >= n(p.total) ? "Full settlement" : "Partial payment",
+            });
+          }
         });
 
       poRetQ.rows
@@ -162,6 +196,7 @@ export default function GeneralLedgerPage() {
           list.push({
             id: `pret-${r.id}`,
             date: r.created_at,
+            seq: 3,
             ref: r.return_no,
             party: supMap.get(po?.supplier_id)?.name || "Supplier",
             kind: "return",
@@ -178,6 +213,7 @@ export default function GeneralLedgerPage() {
           list.push({
             id: `sadv-${e.id}`,
             date: e.created_at,
+            seq: 4,
             ref: "ADV-PAY",
             party: e.party_name || supMap.get(e.party_id)?.name || "Supplier",
             kind: "advance",
@@ -194,14 +230,29 @@ export default function GeneralLedgerPage() {
           list.push({
             id: `walk-${s.id}`,
             date: s.created_at,
+            seq: 1,
             ref: s.invoice_no,
             party: "Walk-in Customer",
             kind: "invoice",
-            typeLabel: `Walk-in Sale (${s.payment_method})`,
+            typeLabel: "Walk-in Sale",
             debit: round2(n(s.total)),
-            credit: round2(n(s.amount_paid)),
+            credit: 0,
             note: s.status,
           });
+          if (n(s.amount_paid) > 0) {
+            list.push({
+              id: `walk-pay-${s.id}`,
+              date: s.created_at,
+              seq: 2,
+              ref: s.invoice_no,
+              party: "Walk-in Customer",
+              kind: "payment",
+              typeLabel: `Payment Received (${s.payment_method})`,
+              debit: 0,
+              credit: round2(n(s.amount_paid)),
+              note: "Counter payment",
+            });
+          }
         });
 
       retQ.rows
@@ -210,6 +261,7 @@ export default function GeneralLedgerPage() {
           list.push({
             id: `wret-${r.id}`,
             date: r.created_at,
+            seq: 3,
             ref: r.return_no,
             party: "Walk-in Customer",
             kind: "return",
@@ -225,7 +277,7 @@ export default function GeneralLedgerPage() {
       .filter((x) => preset === "all" || inRange(x.date, range))
       .filter((x) => typeFilter === "all" || x.kind === typeFilter)
       .filter((x) => !search.trim() || (x.ref + " " + x.party + " " + x.typeLabel + " " + x.note).toLowerCase().includes(search.toLowerCase()))
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime() || (a.seq || 0) - (b.seq || 0));
 
     let running = 0;
     const withBal = list.map((x) => {
@@ -321,6 +373,7 @@ export default function GeneralLedgerPage() {
             <Select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="w-[calc(50%-5px)] sm:w-44">
               <option value="all">All Entry Types</option>
               <option value="invoice">{tab === "supplier" ? "Purchase Orders" : "Sales Invoices"}</option>
+              <option value="payment">Payments</option>
               <option value="advance">Advances</option>
               <option value="return">Returns</option>
             </Select>
@@ -470,6 +523,18 @@ export default function GeneralLedgerPage() {
                       </tr>
                     ))}
                   </tbody>
+                  <tfoot>
+                    <tr className="border-t-2 border-slate-200 bg-slate-50/90 font-bold dark:border-slate-700 dark:bg-slate-800/70">
+                      <td colSpan={partyId === "all" && tab !== "walkin" ? 4 : 3} className="px-3.5 py-2.5 text-right text-[11px] uppercase tracking-wider text-slate-500">Closing Totals</td>
+                      <td className="tnum px-3.5 py-2.5 text-right text-slate-900 dark:text-white">{money(totalDebit)}</td>
+                      <td className="tnum px-3.5 py-2.5 text-right text-emerald-600">{money(totalCredit)}</td>
+                      <td className="tnum px-3.5 py-2.5 text-right">
+                        <span className={netBalance > 0 ? "text-red-600" : netBalance < 0 ? "text-emerald-600" : "text-slate-600"}>
+                          {money(Math.abs(netBalance))} {netBalance > 0 ? "Due" : netBalance < 0 ? "Adv" : ""}
+                        </span>
+                      </td>
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
             )}
