@@ -19,6 +19,7 @@ const PRESETS = [
   ["30d", "Last 30 Days"],
   ["month", "This Month"],
   ["all", "All Time"],
+  ["custom", "Custom Range"],
 ];
 
 export default function GeneralLedgerPage() {
@@ -28,6 +29,8 @@ export default function GeneralLedgerPage() {
   const [partyId, setPartyId] = useState("all");
   const [partySearch, setPartySearch] = useState("");
   const [preset, setPreset] = useState("30d");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [org, setOrg] = useState({ business_name: "IMS" });
@@ -83,7 +86,12 @@ export default function GeneralLedgerPage() {
       : null;
 
   const { rows, totalDebit, totalCredit, netBalance, totalAdvance } = useMemo(() => {
-    const range = dateRange(preset);
+    const range = preset === "custom"
+      ? {
+          from: fromDate ? new Date(`${fromDate}T00:00:00`) : new Date(2000, 0, 1),
+          to: toDate ? new Date(`${toDate}T23:59:59.999`) : new Date(2100, 11, 31),
+        }
+      : dateRange(preset);
     const byBranch = (r) => branchId === "all" || r.branch_id === branchId || r.branch_id == null;
     let list = [];
 
@@ -304,12 +312,15 @@ export default function GeneralLedgerPage() {
       netBalance: tab === "supplier" ? round2(tc - td) : round2(td - tc),
       totalAdvance: adv,
     };
-  }, [tab, partyId, preset, typeFilter, search, branchId, salesQ.rows, retQ.rows, poQ.rows, poRetQ.rows, ledger, custMap, supMap, saleMap, poMap]);
+  }, [tab, partyId, preset, fromDate, toDate, typeFilter, search, branchId, salesQ.rows, retQ.rows, poQ.rows, poRetQ.rows, ledger, custMap, supMap, saleMap, poMap]);
+
+  const periodLabel = preset === "custom"
+    ? `${fromDate || "Start"} to ${toDate || "Today"}`
+    : (PRESETS.find(([v]) => v === preset)?.[1] || "All Time");
 
   function buildShareText() {
     const title = tab === "customer" ? "Customer Ledger Statement" : tab === "supplier" ? "Supplier Ledger Statement" : "Walk-in Customers Statement";
     const partyLabel = selectedParty?.name || (tab === "walkin" ? "Walk-in Customers" : "All Parties");
-    const periodLabel = PRESETS.find(([v]) => v === preset)?.[1] || "All Time";
     const balLabel = netBalance > 0
       ? `Net Due: ${money(netBalance)}`
       : netBalance < 0
@@ -367,10 +378,15 @@ export default function GeneralLedgerPage() {
         {/* Top Filters Bar */}
         <Card className="mb-4 p-3">
           <div className="flex flex-wrap items-center gap-2.5">
-            <Select value={preset} onChange={(e) => setPreset(e.target.value)} className="w-[calc(50%-5px)] sm:w-40">
+            <Select value={preset} onChange={(e) => { const v = e.target.value; setPreset(v); if (v !== "custom") { setFromDate(""); setToDate(""); } }} className="w-[calc(50%-5px)] sm:w-36">
               {PRESETS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </Select>
-            <Select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="w-[calc(50%-5px)] sm:w-44">
+            <div className="flex w-full items-center gap-1.5 sm:w-auto">
+              <Input type="date" value={fromDate} onChange={(e) => { setFromDate(e.target.value); setPreset("custom"); }} className="w-full sm:w-36" title="From Date" aria-label="From Date" />
+              <span className="text-xs font-medium text-slate-400">to</span>
+              <Input type="date" value={toDate} onChange={(e) => { setToDate(e.target.value); setPreset("custom"); }} className="w-full sm:w-36" title="To Date" aria-label="To Date" />
+            </div>
+            <Select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="w-[calc(50%-5px)] sm:w-40">
               <option value="all">All Entry Types</option>
               <option value="invoice">{tab === "supplier" ? "Purchase Orders" : "Sales Invoices"}</option>
               <option value="payment">Payments</option>
@@ -470,7 +486,7 @@ export default function GeneralLedgerPage() {
                 <p className="text-xs text-slate-500">Party: {selectedParty?.name || (tab === "walkin" ? "Walk-in Customers" : "All Parties")} • Branch: {branch?.name || "All Branches"}</p>
               </div>
               <div className="text-right text-xs text-slate-500">
-                <p>Period: {PRESETS.find(([v]) => v === preset)?.[1]}</p>
+                <p>Period: {periodLabel}</p>
                 <p>Printed: {fmtDate(new Date().toISOString(), true)}</p>
               </div>
             </div>
@@ -486,7 +502,7 @@ export default function GeneralLedgerPage() {
           <Card>
             <CardHeader
               title={selectedParty ? `${selectedParty.name} — Statement` : `${tabTitle} Statement`}
-              sub={`${rows.length} transaction(s) • ${PRESETS.find(([v]) => v === preset)?.[1]}`}
+              sub={`${rows.length} transaction(s) • ${periodLabel}`}
             />
             {loading ? (
               <div className="skeleton m-4 h-48" />
