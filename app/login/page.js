@@ -93,8 +93,7 @@ export default function LoginPage() {
               {busy ? "Signing in…" : "Sign In"}
             </button>
           </form>
-          <p className="mt-6 text-center text-sm text-slate-500">New to IMS? <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-700">Create an account</Link></p>
-          <p className="mt-4 text-center text-[11px] text-slate-400">Software by <a href="https://talhashaikh.com" target="_blank" rel="noreferrer" className="font-semibold text-slate-600 hover:text-blue-600 dark:text-slate-300">Talha Shaikh</a> • talhashaikh.com • +923053591906</p>
+          <p className="mt-6 text-center text-[11px] text-slate-400">Software by <a href="https://talhashaikh.com" target="_blank" rel="noreferrer" className="font-semibold text-slate-600 hover:text-blue-600 dark:text-slate-300">Talha Shaikh</a> • talhashaikh.com • +923053591906</p>
         </div>
       </div>
     </div>
